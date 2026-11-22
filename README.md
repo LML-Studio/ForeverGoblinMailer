@@ -1,6 +1,6 @@
 # Forever Mail Fix
 
-A mailbox addon for **World of Warcraft Forever**, developed by **Mini II - Forever - PvE**. Open **Send Mail** and your usual subject is already there. You can still write a different one for any letter.
+A mailbox addon for **World of Warcraft Forever**. Open **Send Mail** and your usual subject is already there. You can still write a different one for any letter.
 
 **[↓ Download Forever Mail Fix (.zip)](https://github.com/TLDUBE/ForeverMailFix/releases/latest/download/ForeverMailFix.zip)** &nbsp;·&nbsp; [Release notes and checksum](https://github.com/TLDUBE/ForeverMailFix/releases/tag/v1.1.0) &nbsp;·&nbsp; [Try the mailbox preview](https://tldube.github.io/ForeverMailFix/)
 
