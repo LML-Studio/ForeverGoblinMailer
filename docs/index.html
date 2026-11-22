@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#112d27">
+  <meta name="description" content="Download Forever Mail Fix for WoW Forever. Prefill empty mail subjects with an account default, then edit any letter before you send.">
+  <meta property="og:title" content="Forever Mail Fix">
+  <meta property="og:description" content="Download the three-file mailbox addon by Mini II - Forever - PvE.">
+  <meta property="og:image" content="https://tldube.github.io/ForeverMailFix/assets/mailroom.jpg">
+  <title>Forever Mail Fix · WoW Forever mailbox addon</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="preview.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#install">Skip to installation</a>
+<header class="top"><div class="wrap header">
+  <a href="#top" class="brand"><span aria-hidden="true" class="mark">✉</span> Forever Mail Fix</a>
+  <nav aria-label="Main"><a href="#install">Install</a><a href="#preview">Preview</a><a href="https://github.com/TLDUBE/ForeverMailFix">GitHub <span aria-hidden="true">↗</span></a></nav>
+</div></header>
+<main id="top">
+  <section class="hero" aria-labelledby="name">
+    <img class="hero-art" src="assets/mailroom.jpg" alt="" width="2172" height="724" fetchpriority="high">
+    <div class="wrap hero-inner">
+      <p class="eyebrow"><span class="rule"></span> World of Warcraft Forever</p>
+      <h1 id="name">Forever<br><em>Mail Fix</em></h1>
+      <p class="lede">Open Send Mail with your favorite subject already filled in. Change it for one letter, or save it for every character.</p>
+      <div class="actions"><a class="download" href="https://github.com/TLDUBE/ForeverMailFix/releases/latest/download/ForeverMailFix.zip"><span aria-hidden="true">↓</span> Download addon ZIP</a><a class="notes" href="https://github.com/TLDUBE/ForeverMailFix/releases/tag/v1.1.0">Release notes <span aria-hidden="true">↗</span></a></div>
+      <p class="spec">v1.1.0 &nbsp;·&nbsp; 2,609 bytes &nbsp;·&nbsp; Interface 16001</p>
+    </div>
+  </section>
+  <section class="paper" id="install" aria-labelledby="start">
+    <div class="wrap">
+      <div class="section-title"><p class="kicker">Quick start</p><h2 id="start">From download to mailbox</h2></div>
+      <ol class="steps">
+        <li><h3>Extract the folder</h3><p>Close WoW. Extract <strong>ForeverMailFix.zip</strong> inside your Forever client's <code>_forever_/Interface/AddOns/</code> folder.</p></li>
+        <li><h3>Open Send Mail</h3><p>Enable <strong>Forever Mail Fix</strong> in the AddOns list. At a mailbox, choose <strong>Send Mail</strong>. An empty subject fills immediately.</p></li>
+        <li><h3>Make it yours</h3><p>Type <kbd>/fmf</kbd> outside combat. Enter up to 64 characters and click <strong>Save</strong>. You can still edit the subject of an individual letter.</p></li>
+      </ol>
+      <a class="ink-link" href="https://github.com/TLDUBE/ForeverMailFix/blob/main/handbook/Install-and-first-use.md">Full installation guide <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+  <section class="workshop" id="preview" aria-labelledby="demo-title"><div class="wrap spread">
+    <div class="preview-intro"><p class="kicker">Interactive preview</p><h2 id="demo-title">Try a draft.</h2><p>Change the default or give the letter its own subject. Preview what happens when you open Send Mail.</p><p class="fine">This browser example runs locally. Your input stays on this page.</p></div>
+    <form id="demo" class="letter">
+      <div class="letter-head"><h3>Subject preview</h3><span aria-hidden="true">✉</span></div>
+      <label for="preferred">Account default</label><input id="preferred" type="text" value="Goblin Co. Intra-Company Transfert" autocomplete="off">
+      <label for="draft">Draft subject <small>optional</small></label><input id="draft" type="text" placeholder="Leave empty to use the default" autocomplete="off">
+      <button id="preview-button" type="submit" disabled>Preview Send Mail <span aria-hidden="true">→</span></button>
+      <div class="result"><span>Subject on opening</span><output id="result" for="preferred draft" aria-live="polite">Goblin Co. Intra-Company Transfert</output></div>
+      <noscript><p>Enable JavaScript to try the preview. An empty draft uses the default shown above.</p></noscript>
+    </form>
+  </div></section>
+  <section class="paper guides" aria-labelledby="guide-title"><div class="wrap">
+    <div class="section-title"><p class="kicker">Field guide</p><h2 id="guide-title">Inside the addon</h2></div>
+    <div class="guides-grid">
+      <article><h3>What the code touches</h3><p>Two Lua files handle the subject and the settings page. The native client owns the recipient, attachments, postage and final Send click.</p><a class="ink-link" href="https://github.com/TLDUBE/ForeverMailFix/blob/main/handbook/How-the-addon-works.md">Trace the mail flow →</a></article>
+      <article><h3>Check your download</h3><p>Compare the ZIP's SHA-256 with the release checksum. The integrity guide includes a file-by-file review and a prompt for an AI second opinion.</p><a class="ink-link" href="https://github.com/TLDUBE/ForeverMailFix/blob/main/handbook/Release-integrity.md">Verify the release →</a></article>
+      <article><h3>Test results</h3><p>Twelve offline scenarios cover everyday use. Three separate edge cases have reproducible reports and workarounds. The live-client checklist is open.</p><a class="ink-link" href="https://github.com/TLDUBE/ForeverMailFix/blob/main/handbook/Testing-and-roadmap.md">Read the test record →</a></article>
+    </div>
+  </div></section>
+</main>
+<footer><div class="wrap footer"><div><p class="footer-brand">Forever Mail Fix</p><p>Developed by <strong>Mini II - Forever - PvE</strong></p></div><nav aria-label="Further reading"><a href="https://github.com/TLDUBE/ForeverMailFix/wiki">Wiki</a><a href="https://github.com/TLDUBE/ForeverMailFix/issues">Issues</a><a href="https://github.com/TLDUBE/ForeverMailFix/blob/main/docs/assets/Credits.md">Artwork &amp; type</a></nav></div></footer>
+</body></html>
