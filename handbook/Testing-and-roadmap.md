@@ -2,7 +2,7 @@
 
 ## Reproduce the release checks
 
-From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. GitHub Actions uses the same entry points. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
+From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. GitHub Actions uses the same entry points. The 37 scenarios include every page, unavailable action tooltips, receipt reconciliation, preserved reserves, adjustable countdowns, and small-screen fitting. Offline snapshots run the real Lua frame tree with the build’s font and icons. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
 
 | Covered offline | Native acceptance still needed |
 | --- | --- |

@@ -3,43 +3,8 @@ return function()
     local env = setmetatable({}, {__index=_G})
     local M, f = {}, {now=0, timers={}, bags={}, attachments={}, outbox={}, wallet=40000,
         guid="char-main", player="Juniper Silver", limit=2, charged=0, nativeMoney=0}
-    f.widgets = {}
-    local function widget(parent)
-        local w = {visible=true, text="", scripts={}, parent=parent, enabled=true}
-        f.widgets[#f.widgets+1] = w
-        function w:IsShown() return self.visible end
-        w.IsVisible = w.IsShown
-        function w:SetText(v) self.text=v end
-        function w:GetText() return self.text end
-        function w:GetChecked() return self.checked end
-        function w:SetChecked(v) self.checked=v end
-        function w:GetParent() return self.parent end
-        function w:SetEnabled(v) self.enabled=v end
-        function w:Disable() self.enabled=false end
-        function w:Show() self.visible=true end
-        function w:Hide() self.visible=false end
-        function w:SetShown(v) self.visible=v end
-        function w:GetStringHeight() return 16 end
-        function w:CreateFontString() return widget(self) end
-        function w:RegisterEvent(e) if e=="MAIL_SHOW" then f.listener=self end end
-        function w:SetScript(k,v) self.scripts[k]=v end
-        for _,k in ipairs({"SetPoint","SetSize","SetWidth","SetHeight","SetMaxLetters","SetAutoFocus","SetFrameStrata",
-            "SetClampedToScreen","EnableMouse","SetBackdrop","SetJustifyH","SetJustifyV","SetScrollChild",
-            "SetVerticalScroll","ClearFocus","ClearAllPoints"}) do w[k]=function() end end
-        return w
-    end
-    for _, name in ipairs({"MailFrame","SendMailFrame","SendMailNameEditBox","SendMailSubjectEditBox",
-        "SendMailBodyEditBox","SendMailMoney","SendMailCODButton","SendMailSendMoneyButton","OpenMailFrame"}) do env[name]=widget() end
-    env.SendMailFrame.visible, env.OpenMailFrame.visible, env.SendMailSendMoneyButton.checked = false, false, true
-    env.SlashCmdList={}
-    env.CreateFrame=function(_,_,parent) return widget(parent) end
+    assert(loadfile("tests/frame_host.lua"))()(env,f)
     env.NameUtil={GetUnmodifiedUnitFullName=function() return f.player end}
-    function f.click(caption)
-        for _,w in ipairs(f.widgets) do
-            if w.text==caption and w.scripts.OnClick and w.enabled then return w.scripts.OnClick(w) end
-        end
-        error("No enabled button named "..caption)
-    end
     env.UnitGUID=function() return f.guid end
     env.UnitFullName=function() return f.player, "Fixture" end
     env.GetRealmName=function() return f.realm or "Fixture" end
@@ -116,7 +81,7 @@ return function()
         env.SendMailNameEditBox.text=""; env.SendMailSubjectEditBox.text=""
         M.event("MAIL_SEND_SUCCESS")
     end
-    for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","Dispatch","Panel"}) do
+    for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","Dispatch","DeskKit","DeskPages","Panel"}) do
         local chunk=assert(loadfile("ForeverGoblinMailer/"..file..".lua"))
         setfenv(chunk,env)("ForeverGoblinMailer",M)
     end

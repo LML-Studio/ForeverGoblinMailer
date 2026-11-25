@@ -51,6 +51,7 @@ function B.read(bag, slot)
         return item
     end
     item.id, item.link, item.count = info.itemID, info.hyperlink, info.stackCount
+    if not secret(info.iconFileID) then item.icon = info.iconFileID end
     item.key = itemKey(item.link)
     if info.isLocked ~= false or info.isBound ~= false or info.hasLoot then
         item.block = "Locked, bound or contains loot"
@@ -143,7 +144,7 @@ function B.begin(parcel, subject)
     return true
 end
 
-function B.submit(parcel, subject, copper, quote, alt)
+function B.submit(parcel, subject, copper, quote, alt, reserve)
     MoneyInputFrame_SetCopper(SendMailMoney, copper)
     if not B.draftMatches(parcel, subject, copper) or not B.matches(parcel, #parcel.items) then
         return nil, "Final native draft readback did not match."
@@ -151,7 +152,7 @@ function B.submit(parcel, subject, copper, quote, alt)
     SetSendMailCOD(0)
     SetSendMailMoney(copper)
     local finalPrice = GetSendMailPrice()
-    if finalPrice ~= quote or GetMoney() < copper + quote + (alt and 10000 or 0) then
+    if finalPrice ~= quote or GetMoney() < copper + quote + (alt and math.max(10000, reserve or 10000) or 0) then
         SetSendMailMoney(0)
         MoneyInputFrame_SetCopper(SendMailMoney, 0)
         return nil, "Postage or balance changed. The amount was cleared; review the draft."

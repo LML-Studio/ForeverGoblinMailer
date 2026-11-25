@@ -1,7 +1,8 @@
 local _, M = ...
 local B = M.box
 local run, countdown
-M.status = "Open Setup to register this character."
+M.status = "Visit the address book to register your characters."
+M.receipts = {}
 
 local function say(message)
     M.status = message
@@ -11,6 +12,10 @@ M.say = say
 
 function M.cancelAuto()
     countdown = nil
+end
+
+function M.activity()
+    return run, countdown and math.max(0, math.ceil(countdown.deadline - GetTime()))
 end
 
 local function stop(message)
@@ -31,9 +36,9 @@ local function contextFor(mode)
     if not M.open or not B.available() then return nil, "Open the mailbox outside combat." end
     local scope, prefs, guid = M.context()
     if not scope then return nil, "Character identity is unavailable." end
-    if prefs.pending then return nil, "A previous send is unconfirmed. Check delivery, then clear the hold in Setup." end
+    if prefs.pending then return nil, "A previous send is unconfirmed. Check the recipient, then open Activity." end
     local main = M.member(scope, "main")
-    if not main then return nil, "Register your main in Setup first." end
+    if not main then return nil, "Register your main in the address book first." end
     local alt = main.guid ~= guid
     if mode == "route" or mode == "auction" then
         if alt then return nil, "This action is for the enrolled main." end
@@ -57,6 +62,7 @@ local function build(mode, sweep)
         plan.parcels[1] = {guid=ctx.main.guid, name=ctx.main.name, roles={main=true}, items={}}
     end
     plan.alt, plan.guid, plan.prefs = ctx.alt, ctx.guid, ctx.prefs
+    plan.reserve = M.reserve(ctx.prefs)
     M.preview = plan
     return plan
 end
@@ -95,18 +101,18 @@ local function send(r)
     end
     local postage = GetSendMailPrice()
     local wallet = math.min(r.budget, GetMoney())
-    local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels)
-    if not copper then return stop("Insufficient postage after keeping the one-gold reserve, or no postage quote.") end
-    if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and the one-gold reserve.") end
+    local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels, r.plan.reserve)
+    if not copper then return stop("The postage quote or available balance cannot cover this parcel and its reserve.") end
+    if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and your reserve.") end
     r.cost, r.phase = postage + copper, "sending"
-    r.plan.prefs.pending = {recipient=r.parcel.name, gold=copper, stacks=#r.parcel.items}
+    r.plan.prefs.pending = {recipient=r.parcel.name, gold=copper, stacks=#r.parcel.items, postage=postage}
     say(("Awaiting confirmation for parcel %d/%d to %s."):format(r.index, #r.plan.parcels, r.parcel.name))
-    local ok, reason = B.submit(r.parcel, r.subject, copper, postage, r.plan.alt)
+    local ok, reason = B.submit(r.parcel, r.subject, copper, postage, r.plan.alt, r.plan.reserve)
     if not ok then r.plan.prefs.pending = nil; return stop(reason) end
     local sentIndex = r.index
     schedule(r, 30, function()
         if r.phase == "sending" and r.index == sentIndex then
-            stop("No send confirmation. Check delivery before clearing the hold in Setup.")
+            stop("No send confirmation. Check delivery before clearing the hold in Activity.")
         end
     end)
 end
@@ -132,8 +138,8 @@ local function beginParcel(r)
     r.parcel = r.plan.parcels[r.index]
     if not stillRouted(r) then return stop("The enrolled recipient changed. Review again.") end
     if #r.parcel.items == 0 then
-        local amount = M.payment(math.min(r.budget, GetMoney()), GetSendMailPrice(), true, true)
-        if not amount or amount == 0 then return stop("No surplus after postage and the one-gold reserve.") end
+        local amount = M.payment(math.min(r.budget, GetMoney()), GetSendMailPrice(), true, true, r.plan.reserve)
+        if not amount or amount == 0 then return stop("No surplus after postage and your reserve.") end
     end
     r.subject = ("Goblin Mail / %s %d of %d"):format(r.plan.mode, r.index, #r.plan.parcels)
     local ok, reason = B.begin(r.parcel, r.subject)
@@ -159,17 +165,24 @@ function M.event(event)
         local scope, prefs, guid = M.context()
         local main = scope and M.member(scope, "main")
         if not main or guid == main.guid or not M.isProfession(scope, guid) or prefs.auto == false then return end
-        if prefs.pending then return say("Previous send unconfirmed. Check delivery and open Setup.") end
-        local ticket = {}
+        if prefs.pending then return say("Previous send unconfirmed. Check delivery and open Activity.") end
+        local delay = M.delay(prefs)
+        local ticket = {deadline=GetTime() + delay}
         countdown = ticket
-        say("Gold return in 8 seconds. Choose a route or press Stop to cancel.")
-        C_Timer.After(8, function()
+        say(("Return to %s in %d seconds. Select Stop to cancel."):format(main.name, delay))
+        C_Timer.After(delay, function()
             if countdown ~= ticket or not M.open or run then return end
             local mode = prefs.withMats and "materials" or "gold"
             if M.review(mode, true) then M.dispatch() end
         end)
     elseif event == "MAIL_SEND_SUCCESS" and run and run.phase == "sending" then
         local r = run
+        local receipt = r.plan.prefs.pending
+        if type(receipt) == "table" then
+            receipt.mode, receipt.items = r.plan.mode, r.parcel.items
+            table.insert(M.receipts, 1, receipt)
+            if #M.receipts > 20 then table.remove(M.receipts) end
+        end
         r.plan.prefs.pending = nil
         r.budget, r.index = r.budget - r.cost, r.index + 1
         if r.index > #r.plan.parcels then return stop(("%d parcel(s) accepted by the mail server."):format(r.index - 1)) end

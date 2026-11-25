@@ -1,13 +1,13 @@
 # Release integrity
 
-Download **[ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.1/ForeverGoblinMailer.zip)** and **[SHA256SUMS.txt](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.1/SHA256SUMS.txt)** from the same release. On Windows, run the following in the download directory.
+Download **[ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** and **[SHA256SUMS.txt](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/SHA256SUMS.txt)** from the same release. On Windows, run the following in the download directory.
 
 ```powershell
 Get-FileHash -Algorithm SHA256 -LiteralPath .\ForeverGoblinMailer.zip
 Get-Content -LiteralPath .\SHA256SUMS.txt
 ```
 
-Compare all 64 hexadecimal digits. A match identifies the published archive. Inspect its contents to assess trust. This ZIP contains one TOC and six Lua files under a single `ForeverGoblinMailer` folder. You can read every file before enabling it. [Tagged source](https://github.com/LML-Studio/ForeverGoblinMailer/tree/v2.0.0-preview.1/ForeverGoblinMailer)
+Compare all 64 hexadecimal digits. A match identifies the published archive. Inspect its contents to assess trust. This ZIP contains one TOC, eight Lua files and one uncompressed TGA header illustration under a single `ForeverGoblinMailer` folder. You can read every file before enabling it. [Tagged source](https://github.com/LML-Studio/ForeverGoblinMailer/tree/v2.0.0-preview.2/ForeverGoblinMailer)
 
 ## A second pair of eyes
 

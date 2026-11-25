@@ -47,24 +47,25 @@ function M.destination(item, mode, scope, price)
     local material = family or owners or item.class == 5 or item.class == 7 or item.reagent
     if mode == "materials" then
         if manual == "auction" then return nil, "Reserved for auction" end
-        if material or (manual and manual ~= "main") then return "main" end
+        if material or (manual and manual ~= "main") then return "main", nil, "Material return to main" end
         return nil, "Outside material return"
     end
     if manual then
-        if mode ~= "auction" or manual == "auction" then return manual end
+        if mode ~= "auction" or manual == "auction" then return manual, nil, "Your item rule" end
         return nil, "Profession rule"
     end
+    local basis = family and "Material family" or "Profession recipe"
     family = family or (owners and recipeRole(owners, scope))
     if family then
-        if mode == "route" then return family end
+        if mode == "route" then return family, nil, basis end
         return nil, "Profession material"
     end
     if material then return nil, "Choose a profession rule" end
     if auctionClasses[item.class] and item.quality and item.quality >= 1 then
         local unitPrice = price and price(item)
         if type(unitPrice) ~= "number" or unitPrice <= 0 then return nil, "No auction quote" end
-        if unitPrice >= M.threshold(scope) * 10000 then return "auction" end
-        return nil, "Below auction floor"
+        if unitPrice >= M.threshold(scope) * 10000 then return "auction", nil, "Auction quote per unit", unitPrice end
+        return nil, "Below auction floor", nil, unitPrice
     end
     return nil, "Outside routing rules"
 end
@@ -73,8 +74,9 @@ function M.plan(items, mode, scope, guid, limit, price)
     local plan = {parcels = {}, held = {}, stacks = 0, mode = mode}
     local groups, order = {}, {}
     for _, item in ipairs(items) do
-        local role, reason
-        if item.block then reason = item.block else role, reason = M.destination(item, mode, scope, price) end
+        local role, reason, basis, quote
+        if item.block then reason = item.block else role, reason, basis, quote = M.destination(item, mode, scope, price) end
+        item.routeRole, item.routeBasis, item.quote = role, basis, quote
         local member = role and M.member(scope, role)
         if role and not member then reason = "No " .. M.labels[role] .. " address"
         elseif member and member.guid == guid then reason = "Already on destination character"
@@ -99,9 +101,9 @@ function M.plan(items, mode, scope, guid, limit, price)
     return plan
 end
 
-function M.payment(wallet, postage, alt, sweep)
+function M.payment(wallet, postage, alt, sweep, reserve)
     if type(wallet) ~= "number" or type(postage) ~= "number" or postage < 0 then return end
-    local spendable = wallet - postage - (alt and 10000 or 0)
+    local spendable = wallet - postage - (alt and math.max(10000, reserve or 10000) or 0)
     if spendable < 0 then return end
     return sweep and spendable or 0
 end

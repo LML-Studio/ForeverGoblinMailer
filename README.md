@@ -2,11 +2,11 @@
 
 Send cloth to your tailor, dust to your enchanter, auction stock to your seller, and surplus gold home. Open a mailbox to see what each character will receive.
 
-**[⬇ Download the install ZIP](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.1/ForeverGoblinMailer.zip)** · [Release notes and SHA-256](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.1) · [Interactive mailroom](https://lml-studio.github.io/ForeverGoblinMailer/)
+**[⬇ Download the install ZIP](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** · [Release notes and SHA-256](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.2) · [Interactive mailroom](https://lml-studio.github.io/ForeverGoblinMailer/)
 
 1. **Install.** With WoW closed, extract the `ForeverGoblinMailer` folder into `_forever_/Interface/AddOns/`. If you used **Forever Mail Fix**, move its old addon folder out of AddOns or disable it on the character screen.
-2. **Enroll.** On your main, type `/fgm`, choose **Main**, and click **Register** twice to confirm the displayed full name. Repeat on each profession alt and your auction alt. One character can hold several roles.
-3. **Dispatch.** On the main, open a mailbox, choose **Route my bags**, review the named parcels, then click **Send reviewed parcels**. On an enrolled profession alt, opening the mailbox starts an **eight-second** gold return. **Stop** cancels it. **Setup → Include bag materials** puts materials on that automatic return too.
+2. **Enroll.** On your main, type `/fgm`, choose **Main**, and choose **Register this character**, then **Confirm assignment** after checking the displayed full name. Repeat on each profession alt and your auction alt. One character can hold several roles.
+3. **Dispatch.** On the main, open a mailbox, choose **Route my bags**, review the named parcels, then click the gold **Send** button showing the number of parcels. On an enrolled profession alt, opening the mailbox starts an **eight-second** gold return. **Cancel countdown** stops it. **Gold returns → Include materials** puts materials on that automatic return too.
 
 **Preview for WoW Forever 1.60.1.71091 · Interface 16001.** The Lua 5.1 suite exercises the send path with synthetic inventories. The first live delivery and native transfer confirmation remain open. [Native acceptance checklist](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5)
 
@@ -14,15 +14,21 @@ Send cloth to your tailor, dust to your enchanter, auction stock to your seller,
 
 ![A wax-sealed parcel on a goblin postal counter](docs/assets/mailroom.jpg)
 
+## The visual mail desk
+
+![The mail desk shows two named parcels, three routed stacks, two held stacks and the Send 2 parcels button](docs/assets/mail-desk-preview.png)
+
+*Layout preview rendered from the addon with synthetic characters.* The left navigation keeps all six pages in reach. Every menu action has hover help. Unavailable dispatch actions show their blocker on the card. **Appearance** offers Parchment, Midnight and High contrast, three window sizes, compact or comfortable spacing, and a draggable or docked window.
+
 ## At the counter
 
 | Mailbox action | Where | What happens |
 | --- | --- | --- |
 | **Route my bags** | Main | Groups profession ingredients and eligible auction stock by character. The manifest lists every included stack and every item held. |
 | **Auction stock only** | Main | Prepares only the auction character’s parcel. Use **Auction** rules for specific items or set a cached market-price floor. |
-| **Gold to main** | Profession alt | Previews a gold-only return. The amount uses the current balance and native postage, with **1g kept on the sender**. |
+| **Gold to main** | Profession alt | Previews a gold-only return. The amount uses the current balance and native postage, with **your selected reserve kept on the sender (at least 1g)**. |
 | **Materials to main** | Profession alt | Reviews transferable ingredients in carried bags. With automatic gold enabled, the last envelope also carries the surplus. Disable automatic gold for material-only returns. |
-| **Setup / Stop** | Any enrolled character | Manage roles, item rules, auction floor and this alt’s return preferences. Stop cancels the countdown or any remaining parcels. |
+| **Address book / Routing rules / Gold returns** | Any enrolled character | Manage roles, item rules, auction floor and this alt’s return preferences. Stop cancels the countdown or any remaining parcels. |
 
 ## What goes where
 
@@ -35,11 +41,11 @@ Send cloth to your tailor, dust to your enchanter, auction stock to your seller,
 | An eligible unbound miscellaneous item | The auction alt when Auctionator’s per-unit quote reaches the floor, initially **5g**. An explicit Auction rule works without Auctionator. |
 | Something you always want to keep | An item-specific **Keep in bags** rule takes precedence, including on return trips. |
 
-The ingredient index links **589 items to 1,084 profession uses** in the pinned Forever build. Familiar material families take precedence over overlapping recipes, so First Aid also using cloth does not redirect your tailor’s default supply. Use an item ID or link in Setup to change a route. [Recipe index and data provenance](handbook/How-the-addon-works.md)
+The ingredient index links **589 items to 1,084 profession uses** in the pinned Forever build. Familiar material families take precedence over overlapping recipes, so First Aid also using cloth does not redirect your tailor’s default supply. Select an item from the manifest or enter an item ID or link in **Routing rules** to inspect its destination and change the rule. [Recipe index and data provenance](handbook/How-the-addon-works.md)
 
 ## Where the gold goes
 
-With **3g 42s 10c** on the alt and a **30c** postage quote, the main receives **2g 41s 80c** and the alt keeps **1g**. With several parcels, earlier envelopes pay their own postage. The last one can carry the gold that is left. If postage would take the alt below its reserve, the queue stops before submitting that parcel. [Gold and material return settings](handbook/Preferences-and-troubleshooting.md)
+With the default 1g reserve, **3g 42s 10c** on the alt and a **30c** postage quote, the main receives **2g 41s 80c** and the alt keeps **1g**. With several parcels, earlier envelopes pay their own postage. The last one can carry the gold that is left. If postage would take the alt below its selected reserve, the queue stops before submitting that parcel. [Gold and material return settings](handbook/Preferences-and-troubleshooting.md)
 
 ```mermaid
 flowchart LR
@@ -52,7 +58,7 @@ flowchart LR
 
 ## Checking a delivery
 
-The review records the recipient and each physical stack. Dispatch checks the bag slot, item instance, variant and count again, reads back the native attachments, and waits for `MAIL_SEND_SUCCESS` before the next envelope. A stopped or uncertain transfer shows a delivery hold. Inspect the native draft or the receiving inbox before clearing it. Blizzard owns any secure confirmation prompt. [Dispatch and recovery](handbook/How-the-addon-works.md)
+The review records the recipient and each physical stack. Dispatch checks the bag slot, item instance, variant and count again, reads back the native attachments, and waits for `MAIL_SEND_SUCCESS` before the next envelope. A stopped or uncertain transfer shows a delivery hold. Inspect the native draft or the receiving inbox before clearing it. **Activity** shows up to 20 server-accepted letters for this login, including recipient, contents, gold and postage. Blizzard owns any secure confirmation prompt. [Dispatch and recovery](handbook/How-the-addon-works.md)
 
 ## Install addons from a source you trust
 

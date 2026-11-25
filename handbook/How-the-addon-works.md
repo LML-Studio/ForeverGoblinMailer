@@ -44,4 +44,7 @@ A single in-flight parcel waits for `MAIL_SEND_SUCCESS`. The more general `MAIL_
 | Routing.lua | Precedence, material families, parcel grouping and money arithmetic |
 | Mailbox.lua | Read the native bags, cursor, compose fields, attachment list and postage |
 | Dispatch.lua | Countdown, review, guarded execution, acknowledgement and recovery |
-| Panel.lua | Mailbox launcher, scrollable manifest, settings and slash commands |
+| DeskKit.lua | Reusable native icon rows, text measurement, edit fields, color palettes and tooltips |
+| DeskPages.lua | Six navigable pages, explicit role and rule editing, gold ledger and receipt views |
+| Panel.lua | Docking, scale, scrolling, drag placement, countdown and action footer |
+| Mailroom.tga | Branded postal illustration rendered in the native header |
