@@ -1,21 +1,15 @@
 # Install and first use
 
-**[Download ForeverMailFix.zip](https://github.com/TLDUBE/ForeverMailFix/releases/latest/download/ForeverMailFix.zip)**. The current release is **v1.1.0**, prepared for **WoW Forever**, interface **16001**.
+**[Download ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.1/ForeverGoblinMailer.zip)** · [Checksum and release](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.1)
 
-1. Completely exit the game. Open the folder containing your Forever installation. On Windows or macOS, the relevant path ends in `World of Warcraft/_forever_`.
-2. Extract the archive. Copy its **ForeverMailFix** folder to `_forever_/Interface/AddOns/`. If you extracted the ZIP directly into AddOns, the folder is already in place.
-3. Check that `ForeverMailFix.toc`, `ForeverMailFix.lua`, and `Options.lua` sit together at `AddOns/ForeverMailFix/`. A second folder with the same name inside the first prevents WoW from finding the manifest.
-4. Launch Forever. At character selection, open **AddOns** and enable **Forever Mail Fix** for the characters you want to use it.
-5. At a mailbox, click **Send Mail**. Look for `Goblin Co. Intra-Company Transfert` in an empty subject. Try typing over it on one draft. You can check the prefill without sending any items.
+1. Close WoW before changing addon files. Extract the ZIP into the Forever client's `_forever_/Interface/AddOns/` directory. Check that `AddOns/ForeverGoblinMailer/ForeverGoblinMailer.toc` exists. A second nested folder prevents discovery.
+2. If upgrading from **Forever Mail Fix**, disable the old addon on the character screen or move its folder outside AddOns while the game is closed. The old subject preference belongs to v1. Version 2 starts with an empty address book.
+3. Enable **Forever Goblin Mailer** in AddOns. Use `/fgm` or **Goblin Mailer → Setup**. On your main choose **Main**. Check the full native name and click **Register** twice.
+4. Log into the relevant alts. Register the tailor for **Tailoring**, the enchanter for **Enchanting**, and the auction character for **Auction alt**. A character with two jobs can register both. The address book is shared within the same realm and faction. Re-register after a character name change.
+5. On the main, open a mailbox. Choose **Route my bags** and scroll through every named parcel and held stack. Select **Send reviewed parcels**. Start with a low-value stack for your first delivery.
 
-**First customization.** Type `/fmf` outside combat. Set a subject such as `Guild bank materials`, click **Save**, then open an empty composition. You can also use **Settings → AddOns → Forever Mail Fix**.
+## The first visit on a profession alt
 
-### Updating
+When a different main is registered, a profession alt gets an eight-second gold-return countdown on mailbox open. **Stop**, selecting a review, or opening **Setup** cancels it for that visit. To disable automatic gold before visiting a mailbox, type `/fgm` on that alt and uncheck **Return surplus gold after 8 seconds**. To opt into material returns on every visit, enable **Include bag materials with automatic gold** on that alt.
 
-Use the newest named ZIP on [Releases](https://github.com/TLDUBE/ForeverMailFix/releases). With the client closed, replace the installed addon folder with the extracted one. WoW stores the preference separately from these three files. If you want a copy of your current preference, note the subject in `/fmf` first.
-
-### Disabling or removing
-
-Disable **Forever Mail Fix** in the AddOns list to stop its hooks on the next load. To remove the addon files, exit WoW and remove only `AddOns/ForeverMailFix/`. **Restore Default** in the options page resets the subject while keeping the addon installed.
-
-[Preferences and troubleshooting](Preferences-and-troubleshooting.md) · [Verify a download](Release-integrity.md)
+An auction-only character receives stock. Registering it as a profession alt as well makes it eligible for that profession’s gold-return behavior. [Configure routing](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Preferences-and-troubleshooting)

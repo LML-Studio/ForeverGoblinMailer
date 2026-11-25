@@ -1,13 +1,28 @@
-const form = document.querySelector("#demo");
-const preferred = document.querySelector("#preferred");
-const draft = document.querySelector("#draft");
-const result = document.querySelector("#result");
-const original = preferred.defaultValue;
+"use strict";
 
-document.querySelector("#preview-button").disabled = false;
+const form = document.getElementById("demo");
+const wallet = document.getElementById("wallet");
+const postage = document.getElementById("postage");
+const result = document.getElementById("result");
+
+function render() {
+  if (!form.checkValidity()) {
+    result.textContent = "Enter a valid balance and postage.";
+    return;
+  }
+  const copper = Math.round(wallet.valueAsNumber * 10000);
+  const surplus = copper - postage.valueAsNumber - 10000;
+  if (surplus <= 0) {
+    result.textContent = "No transfer. The alt keeps its balance.";
+    return;
+  }
+  const gold = Math.floor(surplus / 10000);
+  const silver = Math.floor(surplus / 100) % 100;
+  result.textContent = gold + "g " + silver + "s " + (surplus % 100) + "c";
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  // The demo illustrates the empty-field decision. It has no access to WoW.
-  const exampleDefault = preferred.value.trim() ? preferred.value : original;
-  result.textContent = draft.value === "" ? exampleDefault : draft.value;
+  render();
 });
+form.addEventListener("input", render);

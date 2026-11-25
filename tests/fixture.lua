@@ -1,113 +1,131 @@
--- Small WoW UI boundary for Lua 5.1. Never opens a client or reads player saves.
-local function newSession(config)
-    config = config or {}
-    local env = setmetatable({}, { __index = _G })
-    env._G = env
-    local sim = { api = env, namespace = {}, buttons = {}, frames = {}, registrations = 0 }
+-- Isolated Lua 5.1 host. All character identities, bags and money are synthetic.
+return function()
+    local env = setmetatable({}, {__index=_G})
+    local M, f = {}, {now=0, timers={}, bags={}, attachments={}, outbox={}, wallet=40000,
+        guid="char-main", player="Juniper Silver", limit=2, charged=0, nativeMoney=0}
+    f.widgets = {}
     local function widget(parent)
-        local frame = { parent = parent, shown = true, text = "", scripts = {}, events = {}, regions = {} }
-        function frame:SetPoint() end
-        function frame:SetSize() end
-        function frame:SetHeight() end
-        function frame:SetJustifyH() end
-        function frame:SetAutoFocus() end
-        function frame:ClearFocus() end
-        function frame:SetMaxLetters(value) self.maxLetters = value end
-        function frame:GetText() return self.text end
-        function frame:SetText(value)
-            self.text = value
-            if self.kind == "Button" then sim.buttons[value] = self end
+        local w = {visible=true, text="", scripts={}, parent=parent, enabled=true}
+        f.widgets[#f.widgets+1] = w
+        function w:IsShown() return self.visible end
+        w.IsVisible = w.IsShown
+        function w:SetText(v) self.text=v end
+        function w:GetText() return self.text end
+        function w:GetChecked() return self.checked end
+        function w:SetChecked(v) self.checked=v end
+        function w:GetParent() return self.parent end
+        function w:SetEnabled(v) self.enabled=v end
+        function w:Disable() self.enabled=false end
+        function w:Show() self.visible=true end
+        function w:Hide() self.visible=false end
+        function w:SetShown(v) self.visible=v end
+        function w:GetStringHeight() return 16 end
+        function w:CreateFontString() return widget(self) end
+        function w:RegisterEvent(e) if e=="MAIL_SHOW" then f.listener=self end end
+        function w:SetScript(k,v) self.scripts[k]=v end
+        for _,k in ipairs({"SetPoint","SetSize","SetWidth","SetHeight","SetMaxLetters","SetAutoFocus","SetFrameStrata",
+            "SetClampedToScreen","EnableMouse","SetBackdrop","SetJustifyH","SetJustifyV","SetScrollChild",
+            "SetVerticalScroll","ClearFocus","ClearAllPoints"}) do w[k]=function() end end
+        return w
+    end
+    for _, name in ipairs({"MailFrame","SendMailFrame","SendMailNameEditBox","SendMailSubjectEditBox",
+        "SendMailBodyEditBox","SendMailMoney","SendMailCODButton","SendMailSendMoneyButton","OpenMailFrame"}) do env[name]=widget() end
+    env.SendMailFrame.visible, env.OpenMailFrame.visible, env.SendMailSendMoneyButton.checked = false, false, true
+    env.SlashCmdList={}
+    env.CreateFrame=function(_,_,parent) return widget(parent) end
+    env.NameUtil={GetUnmodifiedUnitFullName=function() return f.player end}
+    function f.click(caption)
+        for _,w in ipairs(f.widgets) do
+            if w.text==caption and w.scripts.OnClick and w.enabled then return w.scripts.OnClick(w) end
         end
-        function frame:IsShown() return self.shown end
-        function frame:IsVisible() return self.shown and (not self.parent or self.parent:IsVisible()) end
-        function frame:RegisterEvent(event) self.events[event] = true end
-        function frame:UnregisterEvent(event) self.events[event] = nil end
-        function frame:SetScript(event, action) self.scripts[event] = action end
-        function frame:HookScript(event, action)
-            local previous = self.scripts[event]
-            self.scripts[event] = function(...)
-                if previous then previous(...) end
-                action(...)
+        error("No enabled button named "..caption)
+    end
+    env.UnitGUID=function() return f.guid end
+    env.UnitFullName=function() return f.player, "Fixture" end
+    env.GetRealmName=function() return f.realm or "Fixture" end
+    env.UnitFactionGroup=function() return f.faction or "Alliance" end
+    env.InCombatLockdown=function() return f.combat or false end
+    env.NUM_BAG_SLOTS, env.ATTACHMENTS_MAX_SEND=0, f.limit
+    env.GetMoney=function() return f.wallet end
+    env.GetTime=function() return f.now end
+    env.C_Timer={After=function(delta, fn) f.timers[#f.timers+1]={at=f.now+delta, fn=fn} end}
+    function f.advance(delta)
+        local untilTime=f.now+delta
+        while true do
+            local nextTimer
+            for i,t in ipairs(f.timers) do
+                if t.at<=untilTime and (not nextTimer or t.at<f.timers[nextTimer].at) then nextTimer=i end
             end
+            if not nextTimer then break end
+            local t=table.remove(f.timers,nextTimer)
+            f.now=t.at; t.fn()
         end
-        function frame:show()
-            self.shown = true
-            if self:IsVisible() and self.scripts.OnShow then self.scripts.OnShow(self) end
-        end
-        function frame:CreateFontString()
-            local label = widget(self)
-            table.insert(self.regions, label)
-            return label
-        end
-        return frame
+        f.now=untilTime
     end
-
-    function env.CreateFrame(kind, name, parent)
-        local frame = widget(parent)
-        table.insert(sim.frames, frame)
-        frame.kind = kind
-        if kind == "EditBox" then sim.editor = frame end
-        return frame
+    env.C_Mail={IsCommandPending=function() return f.nativePending or false end}
+    env.C_Container={}
+    env.C_Container.GetContainerNumSlots=function() return 20 end
+    env.C_Container.GetContainerItemInfo=function(_, slot) return f.bags[slot] end
+    env.C_Container.GetContainerItemQuestInfo=function(_, slot)
+        return {isQuestItem=f.bags[slot].quest or false, isActive=false}
     end
-    function env.hooksecurefunc(name, after)
-        local before = assert(env[name])
-        env[name] = function(...)
-            before(...)
-            after(...)
-        end
+    env.C_Container.GetContainerItemEquipmentSetInfo=function(_, slot) return f.bags[slot].inSet or false end
+    env.ItemLocation={CreateFromBagAndSlot=function(_, _, slot) return slot end}
+    env.C_Item={GetItemGUID=function(slot) return f.bags[slot].guid end,
+        CanBeRefunded=function(slot) return f.bags[slot].refund or false end}
+    env.C_Item.GetItemInfo=function(link)
+        local v=f.data[link]
+        if not v or v.cold then return end
+        return v.itemName,link,v.quality,1,1,"","","","","",0,v.class,v.sub,v.bind,0,nil,v.reagent
     end
-    env.InCombatLockdown = function() return sim.combat end
-    env.print = function(message) sim.message = message end
-    env.SlashCmdList = {}
-    function sim:makeMail()
-        env.MailFrame = widget()
-        env.SendMailFrame = widget(env.MailFrame)
-        env.SendMailFrame.shown = false
-        env.SendMailSubjectEditBox = widget(env.SendMailFrame)
-        if config.reset ~= false then
-            env.SendMailFrame_Reset = function()
-                self.nativeResets = (self.nativeResets or 0) + 1
-                env.SendMailSubjectEditBox:SetText("")
-            end
-        end
+    env.GetCursorInfo=function()
+        if f.cursor then return "item",f.cursor.itemID,f.cursor.hyperlink end
     end
-    function sim:settings(legacy)
-        local function register(panel)
-            self.panel = panel
-            self.registrations = self.registrations + 1
-        end
-        if legacy then
-            env.InterfaceOptions_AddCategory = register
-            env.InterfaceOptionsFrame_OpenToCategory = function(panel) self.opened = panel end
-        else
-            env.Settings = {
-                RegisterCanvasLayoutCategory = function(panel, title)
-                    assert(title == "Forever Mail Fix")
-                    register(panel)
-                    return { GetID = function() return 41 end }
-                end,
-                RegisterAddOnCategory = function(category) assert(category:GetID() == 41) end,
-                OpenToCategory = function(id) self.opened = id end,
-            }
-        end
+    env.C_Container.PickupContainerItem=function(_, slot) f.cursor=f.bags[slot]; f.bags[slot]=nil end
+    env.ClickSendMailItemButton=function(i) f.attachments[i]=f.cursor; f.cursor=nil end
+    env.GetSendMailItem=function(i)
+        local v=f.attachments[i]
+        if v then return v.itemName,v.itemID,0,v.stackCount,v.quality end
     end
-    function sim:loaded(name)
-        for _, frame in ipairs(self.frames) do
-            if frame.events.ADDON_LOADED then
-                frame.scripts.OnEvent(frame, "ADDON_LOADED", name)
-            end
-        end
+    env.GetSendMailItemLink=function(i) return f.attachments[i] and f.attachments[i].hyperlink end
+    env.HasSendMailItem=function(i) return f.attachments[i]~=nil end
+    env.GetSendMailPrice=function() return f.postage or math.max(1,#f.attachments)*30 end
+    env.MoneyInputFrame_GetCopper=function() return f.nativeMoney end
+    env.MoneyInputFrame_SetCopper=function(_,v) f.nativeMoney=v end
+    env.SetSendMailMoney=function(v) f.charged=v end
+    env.SetSendMailCOD=function(v) assert(v==0) end
+    env.MailFrameTab_OnClick=function() env.SendMailFrame.visible=true; env.SendMailFrame.sendMode="send" end
+    env.SendMail=function(name,subject,body)
+        assert(not f.nativePending)
+        f.outbox[#f.outbox+1]={to=name,subject=subject,body=body,gold=f.charged,stacks=#f.attachments,fee=env.GetSendMailPrice()}
+        f.nativePending=true
     end
-    if config.mail ~= false then sim:makeMail() end
-    if config.settings ~= false then sim:settings(config.legacy) end
-    -- Execute only the two release source files in their declared TOC order.
-    for _, name in ipairs({"ForeverMailFix.lua", "Options.lua"}) do
-        local chunk = assert(loadfile("ForeverMailFix/" .. name))
-        setfenv(chunk, env)("ForeverMailFix", sim.namespace)
+    f.data={}
+    function f.item(slot,id,options)
+        local v={itemName="Item "..id,itemID=id,hyperlink="|cffffffff|Hitem:"..id.."::::|h[Item]|h|r",
+            guid="stack-"..slot,stackCount=1,isLocked=false,isBound=false,hasLoot=false,
+            quality=1,class=7,sub=0,bind=0,reagent=false}
+        for k,value in pairs(options or {}) do v[k]=value end
+        f.bags[slot]=v; f.data[v.hyperlink]=v
+        return v
     end
-    env.ForeverMailFixDB = config.saved
-    if not config.defer then sim:loaded("ForeverMailFix") end
-    return sim
+    function f.ack()
+        local sent=assert(f.outbox[#f.outbox])
+        f.wallet=f.wallet-sent.gold-sent.fee
+        f.attachments={}; f.nativeMoney=0; f.charged=0; f.nativePending=false
+        env.SendMailNameEditBox.text=""; env.SendMailSubjectEditBox.text=""
+        M.event("MAIL_SEND_SUCCESS")
+    end
+    for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","Dispatch","Panel"}) do
+        local chunk=assert(loadfile("ForeverGoblinMailer/"..file..".lua"))
+        setfenv(chunk,env)("ForeverGoblinMailer",M)
+    end
+    f.M, f.env=M, env
+    local scope=M.context()
+    for _,entry in ipairs({{"main","char-main","Juniper Silver"},{"tailor","char-tailor","Thimble Blue"},
+        {"enchanter","char-enchant","Ember Vale"},{"auction","char-auction","Penny Gold"}}) do
+        assert(M.enroll(scope,entry[2],entry[1],entry[3]))
+    end
+    f.scope=scope
+    return f
 end
-
-return newSession

@@ -1,31 +1,35 @@
 # Preferences and troubleshooting
 
-| Control | Result |
+## Address book and item rules
+
+Use **Setup** on the character you are enrolling. The name comes from Forever’s full-name helper and includes the native surname separator. Enrolling again updates the selected role. **Remove** releases a role held by the current character after a second click. The Dispatch page shows all enrolled destinations.
+
+For shared ingredients, paste an item link or enter a numeric item ID in **Item rule**, select a profession, **Auction alt**, or **Keep in bags**, then **Save rule**. Choose **Automatic** to remove that override. Rules apply to all matching item IDs on the same realm and faction. One character can own more than one profession. An item already on its destination character stays there.
+
+## Auction stock
+
+The default floor is **5 gold per unit**. Change it under **Auction floor per item (gold)**. Auctionator supplies an optional cached item-link quote for eligible weapons, armor, recipes and miscellaneous items. A stack of twenty items valued at 30s each stays under a 5g per-unit floor. A missing quote holds the item. For a specific collectible or item outside those groups, set an explicit Auction rule. Check your market before mailing stock. [Quote-age tracking](https://github.com/LML-Studio/ForeverGoblinMailer/issues/6)
+
+## Gold and optional material returns
+
+| Alt setting | Opening a mailbox | Choosing Materials to main |
+| --- | --- | --- |
+| Automatic gold on, materials off | Gold only after eight seconds | Reviewed materials with surplus on the final letter |
+| Automatic gold on, materials on | Materials and surplus after eight seconds | The same batch can be reviewed first |
+| Automatic gold off | Waits for a mailbox action | Reviewed materials only. **Gold to main** is available separately. |
+
+The one-gold reserve also applies to postage on material-only letters. At exactly 1g there is no postage available for another parcel. If you plan to send materials, combine them with the gold trip, or choose **Materials to main** during the countdown. **Keep** and explicit **Auction** rules are respected on the return. Gold-only mail will send the surplus after actual postage.
+
+## What to do when a parcel stops
+
+| Panel message or symptom | What to check |
 | --- | --- |
-| `/fmf` or `/forevermailfix` | Opens the game's addon settings outside combat. |
-| **Default subject** | Lets you enter up to 64 characters using the native edit box. |
-| **Save** or **Enter** | Stores the draft value as the account default. The next empty subject uses it. |
-| **Escape** in the edit box | Discards the unsaved edit and displays the saved value. |
-| **Restore Default** | Restores `Goblin Co. Intra-Company Transfert`. Saving a genuinely empty value also restores it. |
+| No active route buttons | Check your current character’s role, enrolled main, realm and faction. Close combat and reopen the mailbox. |
+| No address / choose a profession rule | Enroll the destination on that character, or assign the shared material by item ID. |
+| Item data pending | Wait for the tooltip to load and run the review again. |
+| Current draft is in use | Finish or clear your own draft. A reply, COD, money, cursor item or existing attachment prevents starting. |
+| Stack changed or pickup refused | Check the bag slot, cursor and native draft. Rebuild the review after clearing the draft. |
+| Insufficient postage | Add funds or reduce the shipment. The sender keeps at least one gold on every profession-alt parcel. |
+| Unconfirmed send | Inspect the original sender, native draft and recipient inbox. Allow for delivery delay. Only after reconciling the parcel, use **Setup → Clear delivery hold** twice and start a fresh review. |
 
-A manual edit to the subject **in the mailbox** affects that draft. Only saving through **options** changes the shared setting. WoW persists `ForeverMailFixDB.subject` for the account at normal logout or UI reload.
-
-### The addon is missing from the list
-
-Check the exact folder depth, the `_forever_` client folder and the presence of the TOC. Restart the client after installing a new addon folder. Download the named release asset if your extracted folder contains a website and tests. [Install and first use](Install-and-first-use.md)
-
-### The subject did not change
-
-Open **Send Mail** and inspect an empty draft. An existing subject, including a reply, is intentionally preserved. If the old default appears after editing it between mailbox visits, see the [hidden panel finding](https://github.com/TLDUBE/ForeverMailFix/issues/1). The recipient and item attachments do not decide which default is used.
-
-### My default looks blank or is too long
-
-A nonbreaking space copied on its own can look empty. **Restore Default**, then enter your desired text. For a manually restored long value, type the desired subject in the options page and save again. [Whitespace finding](https://github.com/TLDUBE/ForeverMailFix/issues/2) · [Length finding](https://github.com/TLDUBE/ForeverMailFix/issues/3)
-
-### Settings did not open during combat
-
-Wait for combat to end and type `/fmf` again. You can always navigate through **Settings → AddOns** if the native menu is available.
-
-### Reporting a problem
-
-Give the Forever build, addon version, whether the subject began empty, and the order of tab changes, setting changes, and sends. Use a harmless example subject. If you attach a screenshot, redact recipients, mail contents and character or account information you do not want to publish. [Open an issue](https://github.com/TLDUBE/ForeverMailFix/issues/new)
+Closing the mailbox or entering combat cancels the remaining queue. Native attachments already moved to a draft may still be present. A server-accepted parcel is already on its way.
