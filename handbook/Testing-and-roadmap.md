@@ -2,7 +2,7 @@
 
 ## Reproduce the release checks
 
-From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. The project also runs `python tools/verify_docs.py` to catch missing image assets, stale ZIP links and broken tour anchors. The current workflow runs all three checks. The 37 scenarios include every page, unavailable action tooltips, receipt reconciliation, preserved reserves, adjustable countdowns, and small-screen fitting. Offline snapshots run the real Lua frame tree with the build’s font and icons. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
+From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. The project also runs `python tools/verify_docs.py` to catch missing image assets, stale ZIP links and broken tour anchors. The current workflow runs all three checks. The 50 scenarios include numeric realm recovery, legacy scope isolation, zero/one-copper boundaries, cross-character delivery checks, every page, unavailable action tooltips, receipt reconciliation, preserved reserves, adjustable countdowns, and small-screen fitting. Offline snapshots run the real Lua frame tree with the build’s font and icons. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
 
 | Covered offline | Native acceptance still needed |
 | --- | --- |
@@ -19,9 +19,13 @@ From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_pac
 | **P1** | [#5 · Deliver a real parcel and reconcile both wallets](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5) | Native acceptance gate | 5/5 | 2/5 | **14/15** |
 | **P2** | [#6 · Show the age of cached auction prices](https://github.com/LML-Studio/ForeverGoblinMailer/issues/6) | Price adapter exposes no timestamp | 4/5 | 3/5 | **11/15** |
 | **P2** | [#7 · Offer a refresh when item details arrive](https://github.com/LML-Studio/ForeverGoblinMailer/issues/7) | Cold-data fixture | 3/5 | 2/5 | **10/15** |
-| **P3** | [#10 · Gold review offers an empty parcel at zero surplus](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10) | Four wallet-boundary fixtures | 2/5 | 2/5 | **8/15** |
 
-[File a bug](https://github.com/LML-Studio/ForeverGoblinMailer/issues/new?template=bug-report.yml) · [All issues](https://github.com/LML-Studio/ForeverGoblinMailer/issues) · [Preview 2 verification](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-2-checks)
+[File a bug](https://github.com/LML-Studio/ForeverGoblinMailer/issues/new?template=bug-report.yml) · [All issues](https://github.com/LML-Studio/ForeverGoblinMailer/issues) · [Preview 3 verification](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-3-checks)
+
+## Fixed in Preview 3
+
+- [#10 · Zero-surplus gold review](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10) now requires at least 1c after the reserve and postage.
+- [#12 · Realm-name-only lockout](https://github.com/LML-Studio/ForeverGoblinMailer/issues/12) now resolves the native realm ID and preserves unambiguous legacy networks.
 
 ## How we score reports
 

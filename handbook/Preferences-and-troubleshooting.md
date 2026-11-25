@@ -26,12 +26,13 @@ The default floor is **5 gold per unit**. Change it under **Routing rules → Mi
 
 ![Worked example. From 3g 42s 10c, subtract 30c postage and a 1g reserve to return 2g 41s 80c.](../docs/assets/postage-slip.png)
 
-[Try your own balance and reserve](https://lml-studio.github.io/ForeverGoblinMailer/#preview). Preview 2 can offer a gold-only review at zero surplus. Submitting it stops before sending. Check **Gold returns** for the amount before approving. [Known issue #10](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10)
+[Try your own balance and reserve](https://lml-studio.github.io/ForeverGoblinMailer/#preview). Gold-only review shows **No gold to send** for a known zero and **Quote unavailable** for a missing quote. A positive surplus of 1c is sufficient. Each real material letter can still leave with zero gold when its postage is covered. [Gold review fix](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10)
 
 ## What to do when a parcel stops
 
 | Panel message or symptom | What to check |
 | --- | --- |
+| Waiting for realm identity | Inspect **Address book → Mail network**. A numeric ID is a valid Forever network. When all public identity sources are unavailable, retry after login or leaving combat. |
 | No active route buttons | Check your current character’s role, enrolled main, realm and faction. Wait until combat ends and reopen the mailbox. |
 | No address / choose a profession rule | Enroll the destination on that character, or assign the shared material by item ID. |
 | Item data pending | Wait for the tooltip to load and run the review again. |

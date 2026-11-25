@@ -1,8 +1,8 @@
 # Visual mail desk
 
-**[Download Preview 2](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** · [Installation](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) · [Open the interactive tour](https://lml-studio.github.io/ForeverGoblinMailer/#desk-tour)
+**[Download Preview 3](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/ForeverGoblinMailer.zip)** · [Installation](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) · [Open the interactive tour](https://lml-studio.github.io/ForeverGoblinMailer/#desk-tour)
 
-Open a mailbox to start on **Mail desk** or type `/fgm` to open **Address book**. The left rail stays within reach on every page. The text under an action explains its effect, and hover help explains prerequisites. All six images below are offline renderings of the real Lua interface using synthetic characters and Forever build 71091 assets.
+Open a mailbox to start on **Mail desk** or type `/fgm` to open **Address book**. The left rail stays within reach on every page. The text under an action explains its effect, and hover help explains prerequisites. These offline diagrams use the real Lua frames, synthetic characters and artwork from Forever build 71091. The address book, Gold returns and Activity examples show the Preview 3 controls.
 
 [Mail desk](#mail-desk) · [Address book](#address-book) · [Routing rules](#routing-rules) · [Gold returns](#gold-returns) · [Activity](#activity) · [Appearance](#appearance)
 
@@ -16,7 +16,7 @@ Review the names, quantities and held reasons before pressing Send. Selecting an
 
 ## Address book
 
-Select a profession to see its owner. Register the character you are playing, verify the displayed full name, then confirm the assignment.
+Check **Mail network** for the active realm and faction. Select a profession to see its owner. Register the character you are playing, verify the displayed full name, then confirm the assignment.
 
 ![The directory shows Juniper Silver as Main, assigned profession alts and several unassigned roles.](../docs/assets/desk/address-book.png)
 
@@ -40,7 +40,7 @@ Check what stays on this alt. Set a whole-gold reserve of at least 1g, choose an
 
 ## Activity
 
-A receipt means the server accepted a parcel. For an uncertain send, check the draft and receiving inbox before clearing the hold.
+A receipt means the server accepted a parcel. Use **Start delivery check** in Activity or `/fgm check` to compare marked letters on the receiving character. For an uncertain send, check the draft and receiving inbox before clearing the hold. [Check a live transfer](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-3-checks#check-a-live-transfer)
 
 ![The Activity page separates a delivery requiring reconciliation from a previously accepted letter.](../docs/assets/desk/activity.png)
 

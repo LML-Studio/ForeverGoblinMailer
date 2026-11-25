@@ -2,7 +2,9 @@
 
 ## Identity and data
 
-The address book is scoped by realm and faction. Registration binds a role to the logged-in character’s GUID and native full mailing name. Forever’s Camelot UI joins the first name and surname using the client’s separator. Both the registration control and the outgoing preview display that address. The only saved table is `ForeverGoblinMailerDB`. [Forever naming source](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_FrameXMLUtil/Camelot/NameUtil.lua)
+The address book is scoped by realm and faction. Preview 3 reads the public realm ID, the native realm ID or the server component of a valid player GUID, alongside available realm-name APIs. It reuses a uniquely matched existing table, preserving memberships, personal reserves, item overrides and delivery holds. Missing identifiers or ambiguous saved networks leave dispatch unavailable. The **Mail network** line exposes the selection. [Forever connection API](https://github.com/Gethe/wow-ui-source/blob/d9c22e32cb240afb82bb2ecefbb78ef935333f59/Interface/AddOns/Blizzard_APIDocumentationGenerated/ConnectionDocumentation.lua#L22) · [Camelot friends frame](https://github.com/Gethe/wow-ui-source/blob/d9c22e32cb240afb82bb2ecefbb78ef935333f59/Interface/AddOns/Blizzard_FriendsFrame/Camelot/FriendsFrame.lua#L386)
+
+Registration binds a role to the logged-in character’s GUID and native full mailing name. Forever’s Camelot UI joins the first name and surname using the client’s separator. Both the registration control and the outgoing preview display that address. The only saved table is `ForeverGoblinMailerDB`. [Forever naming source](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_FrameXMLUtil/Camelot/NameUtil.lua)
 
 The ingredient index joins `SkillLineAbility.Spell` to `SpellReagents.SpellID` for the profession skill lines. Only positive reagent IDs with a positive consumed count are admitted. The 1.60.1.71091 snapshot contains **589 distinct ingredients** and **1,084 ingredient–profession links**. The data came from the build’s three DB2 files and its matching enUS hotfix cache. The release carries numeric ingredient IDs and role names. Each bag scan uses client item metadata. [Generator](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tools/build_recipes.py) · [Generated index](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/ForeverGoblinMailer/Recipes.lua)
 
@@ -31,7 +33,7 @@ flowchart TD
     D -->|No| H
 ```
 
-This follows **Route my bags** on the main. **Materials to main** uses a separate return branch that honors Keep and auction reservations. [Routing source](https://github.com/LML-Studio/ForeverGoblinMailer/blob/v2.0.0-preview.2/ForeverGoblinMailer/Routing.lua#L42)
+This follows **Route my bags** on the main. **Materials to main** uses a separate return branch that honors Keep and auction reservations. [Routing source](https://github.com/LML-Studio/ForeverGoblinMailer/blob/v2.0.0-preview.3/ForeverGoblinMailer/Routing.lua#L42)
 
 ## From bag to recipient
 
@@ -41,6 +43,8 @@ This follows **Route my bags** on the main. **Materials to main** uses a separat
 4. Group by receiving character, in the order encountered, and split at the native attachment limit. Every included stack and excluded reason appears in the review.
 5. At dispatch, require a clean draft. Re-read each reviewed bag slot immediately before attaching, then check the exact native recipient, subject, body, money, COD and attachment variant/count before submission.
 6. Quote postage and check the balance again after populating the money field. Each client-accepted parcel reduces the run’s spending budget. A different quote, insufficient balance or mismatched stack stops the queue.
+
+For gold-only reviews, the dispatcher calculates the transferable copper before creating a parcel. Wallet and draft updates refresh the offer. A changed amount discovered on approval requires another click, and the final native wallet and postage readback still applies. Real item letters can proceed at zero gold surplus when their postage is covered.
 
 ## Delivery and recovery
 
@@ -66,6 +70,7 @@ A single in-flight parcel waits for `MAIL_SEND_SUCCESS`. The more general `MAIL_
 | Recipes.lua | Generated profession-ingredient membership |
 | Routing.lua | Precedence, material families, parcel grouping and money arithmetic |
 | Mailbox.lua | Read the native bags, cursor, compose fields, attachment list and postage |
+| DeliveryCheck.lua | Optional, bounded local comparison of marked outbound letters and matching native inbox entries |
 | Dispatch.lua | Countdown, review, guarded execution, acknowledgement and recovery |
 | DeskKit.lua | Reusable native icon rows, text measurement, edit fields, color palettes and tooltips |
 | DeskPages.lua | Six navigable pages, explicit role and rule editing, gold ledger and receipt views |
