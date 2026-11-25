@@ -1,0 +1,188 @@
+local _, M = ...
+local B = M.box
+local run, countdown
+M.status = "Open Setup to register this character."
+
+local function say(message)
+    M.status = message
+    if M.refresh then M.refresh() end
+end
+M.say = say
+
+function M.cancelAuto()
+    countdown = nil
+end
+
+local function stop(message)
+    run, M.preview = nil, nil
+    M.cancelAuto()
+    say(message)
+end
+
+function M.cancel()
+    local pending = run and run.phase == "sending"
+    stop(pending and "Queue stopped. The submitted parcel may still arrive. Check delivery before clearing the hold."
+        or "Stopped. Any unsent attachments are in the native draft.")
+end
+
+function M.busy() return run ~= nil end
+
+local function contextFor(mode)
+    if not M.open or not B.available() then return nil, "Open the mailbox outside combat." end
+    local scope, prefs, guid = M.context()
+    if not scope then return nil, "Character identity is unavailable." end
+    if prefs.pending then return nil, "A previous send is unconfirmed. Check delivery, then clear the hold in Setup." end
+    local main = M.member(scope, "main")
+    if not main then return nil, "Register your main in Setup first." end
+    local alt = main.guid ~= guid
+    if mode == "route" or mode == "auction" then
+        if alt then return nil, "This action is for the enrolled main." end
+    elseif mode == "gold" or mode == "materials" then
+        if not alt or not M.isProfession(scope, guid) then return nil, "This action is for an enrolled profession alt." end
+    else return nil, "Unknown mail action." end
+    return {scope=scope, prefs=prefs, guid=guid, main=main, alt=alt}
+end
+
+local function build(mode, sweep)
+    M.preview = nil
+    local ctx, why = contextFor(mode)
+    if not ctx then return nil, why end
+    local clean, reason = B.compose()
+    if not clean then return nil, reason end
+    local plan
+    if mode == "gold" then plan = {parcels={}, held={}, stacks=0, mode=mode}
+    else plan = M.plan(B.scan(), mode, ctx.scope, ctx.guid, B.limit(), B.price) end
+    plan.sweep = ctx.alt and (mode == "gold" or sweep == true)
+    if #plan.parcels == 0 and plan.sweep then
+        plan.parcels[1] = {guid=ctx.main.guid, name=ctx.main.name, roles={main=true}, items={}}
+    end
+    plan.alt, plan.guid, plan.prefs = ctx.alt, ctx.guid, ctx.prefs
+    M.preview = plan
+    return plan
+end
+
+function M.review(mode, sweep)
+    M.cancelAuto()
+    if run then return say("Finish or stop the current queue first.") end
+    local ok, plan, reason = pcall(build, mode, sweep)
+    if not ok then M.preview = nil; return say("The client could not read the mail or bag state. Retry the review.") end
+    if not plan then return say(reason) end
+    say(("%d parcel(s), %d stack(s), %d held."):format(#plan.parcels, plan.stacks, #plan.held))
+    return plan
+end
+
+local function schedule(r, delay, action)
+    C_Timer.After(delay, function()
+        if run ~= r then return end
+        local ok = pcall(action, r)
+        if not ok then stop("The client interrupted this action. Inspect the native draft and delivery status.") end
+    end)
+end
+
+local function stillRouted(r)
+    local ctx = contextFor(r.plan.mode)
+    if not ctx or ctx.guid ~= r.plan.guid then return false end
+    for role in pairs(r.parcel.roles) do
+        local member = M.member(ctx.scope, role)
+        if not member or member.guid ~= r.parcel.guid or member.name ~= r.parcel.name then return false end
+    end
+    return true
+end
+
+local function send(r)
+    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0) or not B.matches(r.parcel, #r.parcel.items) then
+        return stop("The address, draft or attachments changed. Inspect the native draft.")
+    end
+    local postage = GetSendMailPrice()
+    local wallet = math.min(r.budget, GetMoney())
+    local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels)
+    if not copper then return stop("Insufficient postage after keeping the one-gold reserve, or no postage quote.") end
+    if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and the one-gold reserve.") end
+    r.cost, r.phase = postage + copper, "sending"
+    r.plan.prefs.pending = {recipient=r.parcel.name, gold=copper, stacks=#r.parcel.items}
+    say(("Awaiting confirmation for parcel %d/%d to %s."):format(r.index, #r.plan.parcels, r.parcel.name))
+    local ok, reason = B.submit(r.parcel, r.subject, copper, postage, r.plan.alt)
+    if not ok then r.plan.prefs.pending = nil; return stop(reason) end
+    local sentIndex = r.index
+    schedule(r, 30, function()
+        if r.phase == "sending" and r.index == sentIndex then
+            stop("No send confirmation. Check delivery before clearing the hold in Setup.")
+        end
+    end)
+end
+
+local function attachNext(r)
+    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0) then
+        return stop("The draft changed or the client requires attention. Inspect the native mail window.")
+    end
+    if not B.matches(r.parcel, r.attached) then
+        if r.waitUntil and GetTime() < r.waitUntil then return schedule(r, .1, attachNext) end
+        return stop("Native attachments did not match the review. Inspect the draft.")
+    end
+    r.waitUntil = nil
+    if r.attached == #r.parcel.items then return send(r) end
+    local nextIndex = r.attached + 1
+    local ok, reason = B.attach(r.parcel.items[nextIndex], nextIndex)
+    if not ok then return stop(reason) end
+    r.attached, r.waitUntil = nextIndex, GetTime() + 3
+    schedule(r, .12, attachNext)
+end
+
+local function beginParcel(r)
+    r.parcel = r.plan.parcels[r.index]
+    if not stillRouted(r) then return stop("The enrolled recipient changed. Review again.") end
+    if #r.parcel.items == 0 then
+        local amount = M.payment(math.min(r.budget, GetMoney()), GetSendMailPrice(), true, true)
+        if not amount or amount == 0 then return stop("No surplus after postage and the one-gold reserve.") end
+    end
+    r.subject = ("Goblin Mail / %s %d of %d"):format(r.plan.mode, r.index, #r.plan.parcels)
+    local ok, reason = B.begin(r.parcel, r.subject)
+    if not ok then return stop(reason) end
+    r.phase, r.attached, r.waitUntil = "attaching", 0, nil
+    attachNext(r)
+end
+
+function M.dispatch()
+    local plan = M.preview
+    if run or not plan or #plan.parcels == 0 then return end
+    M.cancelAuto()
+    run = {plan=plan, index=1, budget=GetMoney()}
+    M.preview = nil
+    if not pcall(beginParcel, run) then stop("The client interrupted preparation. Inspect the native draft.") end
+end
+
+function M.event(event)
+    if event == "MAIL_SHOW" then
+        if M.open then return end
+        M.open = true
+        say("Choose a route to review your bags.")
+        local scope, prefs, guid = M.context()
+        local main = scope and M.member(scope, "main")
+        if not main or guid == main.guid or not M.isProfession(scope, guid) or prefs.auto == false then return end
+        if prefs.pending then return say("Previous send unconfirmed. Check delivery and open Setup.") end
+        local ticket = {}
+        countdown = ticket
+        say("Gold return in 8 seconds. Choose a route or press Stop to cancel.")
+        C_Timer.After(8, function()
+            if countdown ~= ticket or not M.open or run then return end
+            local mode = prefs.withMats and "materials" or "gold"
+            if M.review(mode, true) then M.dispatch() end
+        end)
+    elseif event == "MAIL_SEND_SUCCESS" and run and run.phase == "sending" then
+        local r = run
+        r.plan.prefs.pending = nil
+        r.budget, r.index = r.budget - r.cost, r.index + 1
+        if r.index > #r.plan.parcels then return stop(("%d parcel(s) accepted by the mail server."):format(r.index - 1)) end
+        r.phase = "between"
+        say(("Parcel %d accepted. Preparing the next parcel."):format(r.index - 1))
+        schedule(r, .5, beginParcel)
+    elseif event == "MAIL_FAILED" and run then
+        -- This general event also covers inbox actions. Preserve an in-flight hold.
+        stop("Mail failed. Check the native draft and delivery status before trying again.")
+    elseif event == "MAIL_LOCK_SEND_ITEMS" and run then
+        stop("The client requires item confirmation. Inspect the native draft.")
+    elseif event == "MAIL_CLOSED" or event == "PLAYER_REGEN_DISABLED" then
+        if event == "MAIL_CLOSED" then M.open = false end
+        if run or M.preview or countdown then M.cancel() end
+    end
+end

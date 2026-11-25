@@ -97,3 +97,9 @@ output { display:block; font:500 clamp(20px,2.15vw,29px)/1.22 var(--serif); marg
   .download { padding-inline:14px }
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto } }
+
+.hero h1 { font-size:clamp(58px,7.3vw,103px) }
+@media(max-width:475px) {
+  .hero h1 { font-size:clamp(46px,12vw,61px) }
+  .header nav { gap:9px }
+}
