@@ -1,6 +1,6 @@
 <h1><img src="docs/assets/handbook-cover.jpg" alt="Forever Goblin Mailer" width="1200"></h1>
 
-**[↓ Download ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/ForeverGoblinMailer.zip)** · [Release notes](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.3) · [Verify your download](handbook/Release-integrity.md)
+**[↓ Download ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.4/ForeverGoblinMailer.zip)** · [Release notes](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.4) · [Verify your download](handbook/Release-integrity.md)
 
 Send cloth to your tailor, dust to your enchanter and sale stock to your auction alt. The mail desk shows the name on every envelope and why each stack is going. Profession alts can send materials and spare gold home.
 
@@ -9,9 +9,9 @@ Send cloth to your tailor, dust to your enchanter and sale stock to your auction
 3. **Mail.** On your main, open a mailbox and choose **Route my bags**. Check each recipient and the **Held in bags** list, then press **Send** with the displayed parcel count.
 
 > [!IMPORTANT]
-> An enrolled profession alt with a different registered main defaults to returning surplus gold **eight seconds after opening a mailbox**. **Cancel countdown** stops that visit. To change the default before visiting, type `/fgm` on the alt and open **Gold returns**. The alt keeps at least **1g after postage**.
+> An enrolled profession alt with a different registered main prepares a gold draft **eight seconds after opening a mailbox** by default. Review the filled coins and press **Send** in WoW’s native mail window. **Cancel countdown** stops that visit. To change the default before visiting, type `/fgm` on the alt and open **Gold returns**. The alt keeps at least **1g after postage**.
 
-[![Addon verification on main](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) &nbsp; **Preview 3** · WoW Forever 1.60.1.71139 · Interface 16001 · Developed by **Mini II - Forever - PvE**
+[![Addon verification on main](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) &nbsp; **Preview 4** · WoW Forever 1.60.1.71139 · Interface 16001 · Developed by **Mini II - Forever - PvE**
 
 ## Inside the mail desk
 
@@ -57,7 +57,7 @@ The build indexes **589 ingredients and 1,084 ingredient–profession links**. A
 
 [![Example postage ledger. From 3g 42s 10c, subtract 30c postage and a 1g reserve. The main receives 2g 41s 80c.](docs/assets/postage-slip.png)](https://lml-studio.github.io/ForeverGoblinMailer/#preview)
 
-The gold-only Send button requires a positive surplus. At a 1g reserve and a 30c quote, a 1g 0s 30c wallet offers no letter. One copper more offers a letter carrying **1c**. An unknown quote is shown separately.
+**Fill gold draft** requires a positive surplus. Its subject is **Goblin Mail - Daily Interests**. The desk fills gold, silver and copper, then waits for you to click the native **Send** button. At a 1g reserve and a 30c quote, a 1g 0s 30c wallet offers no letter. One copper more offers a letter carrying **1c**. An unknown quote is shown separately.
 
 Try the same balance with a **2g** reserve and the return drops to **1g 41s 80c**. In a material shipment each letter pays its own postage. Only the last can carry the remaining surplus. The addon checks the actual wallet and postage again before it sends. [Try the postage calculator](https://lml-studio.github.io/ForeverGoblinMailer/#preview) · [Configure this alt](handbook/Preferences-and-troubleshooting.md)
 
@@ -77,6 +77,6 @@ Download the named ZIP and checksum from the same release. Compare SHA-256 to co
 
 ## Release and support
 
-Preview 3 passed **50 Lua 5.1 scenarios** and was installed with a readback on Forever build 71139. Use `/fgm check` to record a controlled transfer locally and match the receiving inbox. The live acceptance record is tracked in [issue #5](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5). [Verification record](handbook/Release-preview-3-checks.md) · [Known issues and scores](handbook/Testing-and-roadmap.md) · [File a bug](https://github.com/LML-Studio/ForeverGoblinMailer/issues/new?template=bug-report.yml)
+Preview 4 passed **56 Lua 5.1 scenarios**, including the individual native-style coin fields and the 1c boundary. Use `/fgm check` to record a controlled transfer. On the recipient, open the test letter before collecting to match its reference and contents. The live acceptance record is tracked in [issue #5](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5). [Verification record](handbook/Release-preview-4-checks.md) · [Known issues and scores](handbook/Testing-and-roadmap.md) · [File a bug](https://github.com/LML-Studio/ForeverGoblinMailer/issues/new?template=bug-report.yml)
 
 [Player wiki](https://github.com/LML-Studio/ForeverGoblinMailer/wiki) · [Engineering PR for the addon](https://github.com/LML-Studio/ForeverGoblinMailer/pull/9) · [Original subject-prefill release](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v1.1.0)

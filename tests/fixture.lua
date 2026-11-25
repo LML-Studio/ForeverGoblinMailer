@@ -57,10 +57,34 @@ return function()
     env.GetSendMailItemLink=function(i) return f.attachments[i] and f.attachments[i].hyperlink end
     env.HasSendMailItem=function(i) return f.attachments[i]~=nil end
     env.GetSendMailPrice=function() return f.postage or math.max(1,#f.attachments)*30 end
-    env.MoneyInputFrame_GetCopper=function() return f.nativeMoney end
-    env.MoneyInputFrame_SetCopper=function(_,v) f.nativeMoney=v end
-    env.SetSendMailMoney=function(v) f.charged=v end
-    env.SetSendMailCOD=function(v) assert(v==0) end
+    local function coinBox()
+        return {n=0, GetNumber=function(self) return self.n end,
+            SetNumber=function(self,n) self.n=n end, IsVisible=function() return true end}
+    end
+    local coins=env.SendMailMoney
+    coins.gold,coins.silver,coins.copper=coinBox(),coinBox(),coinBox()
+    env.MoneyInputFrame_GetCopper=function(frame)
+        return frame.gold:GetNumber()*10000 + frame.silver:GetNumber()*100 + frame.copper:GetNumber()
+    end
+    env.MoneyInputFrame_SetCopper=function(frame,n)
+        frame.gold:SetNumber(math.floor(n/10000)); frame.silver:SetNumber(math.floor(n/100)%100); frame.copper:SetNumber(n%100)
+    end
+    function f.coins() return env.MoneyInputFrame_GetCopper(coins) end
+    env.GetSendMailMoney=function() return f.charged end
+    env.GetSendMailCOD=function() return 0 end
+    env.SendMailFrame_SendMail=function()
+        env.SendMail(env.SendMailNameEditBox:GetText(),env.SendMailSubjectEditBox:GetText(),env.SendMailBodyEditBox:GetText())
+    end
+    env.InboxFrame={}; env.InboxFrame_OnClick=function(_,index) env.InboxFrame.openMailID=index; env.OpenMailFrame.visible=true end
+    env.hooksecurefunc=function(name,observe)
+        local original=env[name]
+        env[name]=function(...) original(...); observe(...) end
+    end
+    function f.nativeSend()
+        assert(env.SendMailFrame.visible and not f.nativePending)
+        f.charged=f.coins()
+        env.SendMailFrame_SendMail()
+    end
     env.MailFrameTab_OnClick=function() env.SendMailFrame.visible=true; env.SendMailFrame.sendMode="send" end
     env.SendMail=function(name,subject,body)
         assert(not f.nativePending)
@@ -79,8 +103,8 @@ return function()
     function f.ack()
         local sent=assert(f.outbox[#f.outbox])
         f.wallet=f.wallet-sent.gold-sent.fee
-        f.attachments={}; f.nativeMoney=0; f.charged=0; f.nativePending=false
-        env.SendMailNameEditBox.text=""; env.SendMailSubjectEditBox.text=""
+        f.attachments={}; env.MoneyInputFrame_SetCopper(coins,0); f.charged=0; f.nativePending=false
+        env.SendMailNameEditBox.text=""; env.SendMailSubjectEditBox.text=""; env.SendMailBodyEditBox.text=""
         M.event("MAIL_SEND_SUCCESS")
     end
     for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","DeliveryCheck","Dispatch","DeskKit","DeskPages","Panel"}) do

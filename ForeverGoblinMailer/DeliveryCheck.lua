@@ -24,7 +24,7 @@ function A.start()
     scope.deliveryCheck = {recording=true, untilTime=now+7200, started=now, build=build,
         token=now.."-"..scope.checkSerial, letters={}}
     recent = nil
-    M.say("Recording the next eight parcels for up to two hours. Check the receiving inbox before collecting them.")
+    M.say("Recording the next eight parcels for up to two hours. Open each test letter before collecting it.")
 end
 
 function A.stop()
@@ -33,16 +33,16 @@ function A.stop()
     M.say("Recording ended. Previously marked letters can still be checked in the receiving inbox.")
 end
 
--- A unique subject identifies just this opted-in letter after a character switch.
+-- A reference in the body identifies this letter without changing its inbox title.
 -- The observer never submits mail, accepts a prompt or collects an attachment.
 function A.prepare(run, subject)
     run.checkLetter = nil
     local check = run.plan.scope.deliveryCheck
-    if not A.active(check) then return subject end
+    if not A.active(check) then return "" end
     local sender = M.currentName()
-    if not sender then return subject end
-    subject = subject.." [FGM "..check.token.."."..(#check.letters+1).."]"
-    local letter = {subject=subject, sender=sender, recipient=run.parcel.guid, mode=run.plan.mode,
+    if not sender then return "" end
+    local reference = "Delivery check reference: FGM "..check.token.."."..(#check.letters+1)
+    local letter = {subject=subject, body=reference, sender=sender, recipient=run.parcel.guid, mode=run.plan.mode,
         reserve=run.plan.alt and run.plan.reserve or 0, items={}}
     for _, item in ipairs(run.parcel.items) do
         letter.items[#letter.items+1] = item.id.."x"..item.count
@@ -50,13 +50,13 @@ function A.prepare(run, subject)
     table.sort(letter.items)
     check.letters[#check.letters+1] = letter
     run.checkLetter = letter
-    return subject
+    return reference
 end
 
-function A.submitting(run, gold, postage)
+function A.submitting(run, gold, postage, before)
     local letter = run.checkLetter
     if letter then
-        letter.before = public(GetMoney(), "number")
+        letter.before = before or public(GetMoney(), "number")
         letter.gold, letter.postage = gold, postage
     end
 end
@@ -98,6 +98,7 @@ local function inspect(index, letter, sender, money, cod, count, returned)
     table.sort(items)
     if table.concat(items,",") == table.concat(letter.items,",") then
         letter.inboxMatched = GetServerTime()
+        return true
     end
 end
 
@@ -108,13 +109,41 @@ function A.observeInbox()
     if type(check) ~= "table" or type(check.letters) ~= "table" then return end
     local pending = {}
     for _, letter in ipairs(check.letters) do
-        if letter.gold and letter.recipient == guid and not letter.inboxMatched then pending[letter.subject] = letter end
+        if letter.gold and letter.recipient == guid and not letter.inboxMatched then
+            local candidates = pending[letter.subject] or {}
+            candidates[#candidates+1] = letter
+            pending[letter.subject] = candidates
+        end
     end
     if not next(pending) then return end
+    local changed
     local loaded = public(GetInboxNumItems(), "number")
     for index = 1, loaded or 0 do
         local _, _, sender, subject, money, cod, _, count, _, returned = GetInboxHeaderInfo(index)
-        local letter = public(subject,"string") and pending[subject]
-        if letter then inspect(index,letter,sender,money,cod,count,returned) end
+        local candidates = public(subject,"string") and pending[subject]
+        if candidates then
+            -- Read only a candidate letter already opened by the player. Reading
+            -- arbitrary inbox bodies can mark other people's letters as read.
+            local body
+            if InboxFrame and InboxFrame.openMailID == index and OpenMailFrame and OpenMailFrame:IsShown() and GetInboxText then
+                body = public(GetInboxText(index), "string")
+            end
+            for _, letter in ipairs(candidates) do
+                -- Older saved records used unique subjects, with no body reference.
+                if not letter.body or (body and body == letter.body) then
+                    if inspect(index,letter,sender,money,cod,count,returned) then changed = true end
+                end
+            end
+        end
     end
+    if changed and M.refresh then M.refresh() end
+end
+
+local watching
+function A.watchInbox()
+    if watching or not hooksecurefunc or type(InboxFrame_OnClick) ~= "function" then return end
+    hooksecurefunc("InboxFrame_OnClick", function()
+        C_Timer.After(0, A.observeInbox)
+    end)
+    watching = true
 end

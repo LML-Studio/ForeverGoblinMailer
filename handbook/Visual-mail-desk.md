@@ -1,8 +1,8 @@
 # Visual mail desk
 
-**[Download Preview 3](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/ForeverGoblinMailer.zip)** · [Installation](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) · [Open the interactive tour](https://lml-studio.github.io/ForeverGoblinMailer/#desk-tour)
+**[Download Preview 4](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.4/ForeverGoblinMailer.zip)** · [Installation](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) · [Open the interactive tour](https://lml-studio.github.io/ForeverGoblinMailer/#desk-tour)
 
-Open a mailbox to start on **Mail desk** or type `/fgm` to open **Address book**. The left rail stays within reach on every page. The text under an action explains its effect, and hover help explains prerequisites. These offline diagrams use the real Lua frames, synthetic characters and artwork from Forever build 71091. The address book, Gold returns and Activity examples show the Preview 3 controls.
+Open a mailbox to start on **Mail desk** or type `/fgm` to open **Address book**. The left rail stays within reach on every page. The text under an action explains its effect, and hover help explains prerequisites. These offline diagrams use the real Lua frames, synthetic characters and artwork from Forever build 71091. The gold ledger and Activity examples show Preview 4. The address book illustrates the numeric realm support introduced in Preview 3.
 
 [Mail desk](#mail-desk) · [Address book](#address-book) · [Routing rules](#routing-rules) · [Gold returns](#gold-returns) · [Activity](#activity) · [Appearance](#appearance)
 
@@ -32,7 +32,7 @@ Inspect an item ID or link, select a destination and apply the rule. Automatic r
 
 ## Gold returns
 
-Check what stays on this alt. Set a whole-gold reserve of at least 1g, choose an 8, 15 or 30 second countdown, and decide whether to include materials.
+Choose **Gold to main → Fill gold draft**, verify the visible coins, then click the native **Send**. Check what stays on this alt. Set a whole-gold reserve of at least 1g, choose an 8, 15 or 30 second countdown, and decide whether to include materials.
 
 ![The gold ledger shows the wallet, protected balance, empty-draft postage and the resulting gold-only return.](../docs/assets/desk/gold-ledger.png)
 
@@ -40,7 +40,7 @@ Check what stays on this alt. Set a whole-gold reserve of at least 1g, choose an
 
 ## Activity
 
-A receipt means the server accepted a parcel. Use **Start delivery check** in Activity or `/fgm check` to compare marked letters on the receiving character. For an uncertain send, check the draft and receiving inbox before clearing the hold. [Check a live transfer](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-3-checks#check-a-live-transfer)
+A receipt means the server accepted a parcel. Use **Start delivery check** in Activity or `/fgm check` to compare recorded letters. On the recipient, open the specific letter before collecting it. For an uncertain send, check the draft and receiving inbox before clearing the hold. [Check a live transfer](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-4-checks#check-a-live-transfer)
 
 ![The Activity page separates a delivery requiring reconciliation from a previously accepted letter.](../docs/assets/desk/activity.png)
 

@@ -3,7 +3,7 @@
 ## Title: Forever Goblin Mailer
 ## Notes: Route profession materials, auction stock and gold between your own characters. Open a mailbox or type /fgm.
 ## Author: Mini II - Forever - PvE
-## Version: 2.0.0-preview.3
+## Version: 2.0.0-preview.4
 ## IconTexture: 133472
 ## SavedVariables: ForeverGoblinMailerDB
 
