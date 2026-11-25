@@ -26,7 +26,8 @@ function M.currentName()
     if InCombatLockdown() then return end
     local name
     if NameUtil and NameUtil.GetUnmodifiedUnitFullName then
-        name = NameUtil.GetUnmodifiedUnitFullName("player")
+        local ok, value = pcall(NameUtil.GetUnmodifiedUnitFullName,"player")
+        if ok then name=value end
     elseif UnitNameUnmodified then
         local first, last = UnitNameUnmodified("player")
         if issecretvalue and (issecretvalue(first) or issecretvalue(last)) then return end
@@ -45,10 +46,20 @@ local function tableField(parent, key)
     return parent[key]
 end
 
+local function nativeString(fn, ...)
+    if type(fn) ~= "function" then return end
+    local ok, value = pcall(fn,...)
+    if ok and not (issecretvalue and issecretvalue(value)) and type(value)=="string" and value~="" then return value end
+end
+
 function M.context()
-    if InCombatLockdown() then return end
-    local guid, realm, faction = UnitGUID("player"), GetRealmName(), UnitFactionGroup("player")
-    if type(guid) ~= "string" or guid == "" or not realm or realm == "" or not faction then return end
+    if InCombatLockdown() then return nil,nil,nil,"Character settings are available after combat." end
+    local guid=nativeString(UnitGUID,"player")
+    local realm=nativeString(GetRealmName)
+    local faction=nativeString(UnitFactionGroup,"player")
+    if not guid then return nil,nil,nil,"Waiting for the client's character identity." end
+    if not realm then return nil,nil,nil,"Waiting for the client's realm name." end
+    if not faction then return nil,nil,nil,"Waiting for the client's faction." end
     if type(ForeverGoblinMailerDB) ~= "table" then ForeverGoblinMailerDB = {} end
     local scope = tableField(tableField(ForeverGoblinMailerDB, "realms"), realm .. "/" .. faction)
     tableField(scope, "roles")
@@ -93,6 +104,21 @@ function M.threshold(scope)
     local value = scope.floorGold
     if type(value) ~= "number" or value ~= math.floor(value) or value < 1 or value > 1000000 then return 5 end
     return value
+end
+
+function M.reserve(prefs)
+    local n = prefs and prefs.reserveGold
+    if type(n) ~= "number" or n < 1 or n > 1000000 or n ~= math.floor(n) then return 10000 end
+    return n * 10000
+end
+
+function M.delay(prefs)
+    local n = prefs and prefs.delaySeconds
+    return (n == 15 or n == 30) and n or 8
+end
+
+function M.display()
+    return tableField(ForeverGoblinMailerDB, "display")
 end
 
 function M.money(copper)

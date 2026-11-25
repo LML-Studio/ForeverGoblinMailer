@@ -20,27 +20,28 @@
     <div class="wrap hero-inner"><p class="eyebrow"><span class="rule"></span> World of Warcraft Forever</p>
       <h1 id="name">Forever<br><em>Goblin Mailer</em></h1>
       <p class="lede">Cloth to the tailor. Dust to the enchanter. One visit to the mailbox sorts the haul and brings your alt’s spare gold home.</p>
-      <div class="actions"><a class="download" href="https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.1/ForeverGoblinMailer.zip"><span aria-hidden="true">↓</span> Download the addon ZIP</a><a class="notes" href="https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.1">Release notes</a></div>
-      <p class="spec">v2.0.0 preview 1 · Forever 1.60.1 · Interface 16001</p>
+      <div class="actions"><a class="download" href="https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip"><span aria-hidden="true">↓</span> Download the addon ZIP</a><a class="notes" href="https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.2">Release notes</a></div>
+      <p class="spec">v2.0.0 preview 2 · Forever 1.60.1 · Interface 16001</p>
     </div>
   </section>
   <section class="paper" id="install" aria-labelledby="start"><div class="wrap">
     <div class="section-title"><h2 id="start">Your first delivery</h2></div>
     <ol class="steps">
       <li><h3>Install the folder</h3><p>With WoW closed, extract <code>ForeverGoblinMailer</code> into <code>_forever_/Interface/AddOns/</code>. Disable the old Forever Mail Fix if installed.</p></li>
-      <li><h3>Enroll your characters</h3><p>Type <kbd>/fgm</kbd> on each character. Select Main, Auction alt, or a profession. Confirm the full name with <strong>Register</strong> twice.</p></li>
-      <li><h3>Review your parcels</h3><p>On your main, open a mailbox and select <strong>Route my bags</strong>. Check the recipients and click <strong>Send reviewed parcels</strong>.</p></li>
+      <li><h3>Enroll your characters</h3><p>Type <kbd>/fgm</kbd> on each character. Select Main, Auction alt, or a profession. Choose <strong>Register this character</strong>, then <strong>Confirm assignment</strong>.</p></li>
+      <li><h3>Review your parcels</h3><p>On your main, open a mailbox and select <strong>Route my bags</strong>. Check the recipients and click the gold <strong>Send</strong> button showing the parcel count.</p></li>
     </ol><a class="ink-link" href="https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use">Full install and upgrade guide →</a>
   </div></section>
   <section class="workshop" id="preview" aria-labelledby="demo-title"><div class="wrap spread">
-    <div class="preview-intro"><p class="kicker">Gold returns</p><h2 id="demo-title">One gold stays home.</h2>
-      <p>Each enrolled profession alt can return its surplus eight seconds after you open a mailbox. Include materials to put the gold in the final parcel, after all postage.</p>
-      <p class="fine">Try a sample balance and postage. The addon reads both from the game. This calculator runs in your browser.</p></div>
+    <div class="preview-intro"><p class="kicker">Gold returns</p><h2 id="demo-title">Choose how much gold stays home.</h2>
+      <p>Each enrolled profession alt can return its surplus after a configurable 8, 15 or 30 seconds at the mailbox. Include materials to put the gold in the final parcel, after all postage.</p>
+      <p class="fine">Try a sample balance, postage and reserve. The addon reads both from the game. This calculator runs in your browser.</p></div>
     <form id="demo" class="letter"><div class="letter-head"><h3>Postage ledger</h3><span aria-hidden="true">✉</span></div>
       <label for="wallet">Alt balance <small>in gold</small></label><input id="wallet" type="number" min="0" max="99999999" step=".0001" value="3.4210" required>
       <label for="postage">Native postage <small>in copper</small></label><input id="postage" type="number" min="0" max="99999999" step="1" value="30" required>
+      <label for="reserve">Alt reserve <small>whole gold, minimum 1</small></label><input id="reserve" type="number" min="1" max="1000000" step="1" value="1" required>
       <button type="submit">Calculate return →</button>
-      <div class="result"><span>Main receives</span><output id="result" for="wallet postage" aria-live="polite">2g 41s 80c</output></div>
+      <div class="result"><span>Main receives</span><output id="result" for="wallet postage reserve" aria-live="polite">2g 41s 80c</output></div>
       <noscript><p>This sample leaves 1g on the sender. Enable JavaScript to change the amounts.</p></noscript>
     </form>
   </div></section>

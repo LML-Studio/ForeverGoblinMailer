@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 NAME = "ForeverGoblinMailer"
 ADDON = ROOT / NAME
 DIST = ROOT / "dist"
-FILES = [NAME + ".toc", "Roster.lua", "Recipes.lua", "Routing.lua", "Mailbox.lua", "Dispatch.lua", "Panel.lua"]
+LUA = ["Roster.lua", "Recipes.lua", "Routing.lua", "Mailbox.lua", "Dispatch.lua", "DeskKit.lua", "DeskPages.lua", "Panel.lua"]
+FILES = [NAME + ".toc", *LUA, "Mailroom.tga"]
 ZIP = DIST / (NAME + ".zip")
 SUMS = DIST / "SHA256SUMS.txt"
 
@@ -41,7 +42,9 @@ def verify():
     toc = (ADDON / FILES[0]).read_text("utf-8").splitlines()
     require("## Interface: 16001" in toc and "## AllowLoadGameType: camelot" in toc, "Wrong client")
     require("## SavedVariables: ForeverGoblinMailerDB" in toc, "Wrong settings owner")
-    require([s for s in toc if s and not s.startswith("#")] == FILES[1:], "Wrong load order")
+    require([s for s in toc if s and not s.startswith("#")] == LUA, "Wrong load order")
+    art = (ADDON / "Mailroom.tga").read_bytes()
+    require(art[1:3] == bytes([0, 2]) and art[12:17] == bytes([0, 4, 128, 0, 24]), "Unexpected native artwork format")
     print(f"Verified {len(FILES)} runtime files, {ZIP.stat().st_size} bytes. SHA-256 {digest}")
 
 
