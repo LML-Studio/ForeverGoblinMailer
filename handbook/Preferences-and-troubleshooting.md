@@ -18,8 +18,8 @@ The default floor is **5 gold per unit**. Change it under **Routing rules → Mi
 
 | Alt setting | Opening a mailbox | Choosing Materials to main |
 | --- | --- | --- |
-| Automatic gold on, materials off | Gold only after the configured countdown | Reviewed materials with surplus on the final letter |
-| Automatic gold on, materials on | Materials and surplus after the configured countdown | The same batch can be reviewed first |
+| Automatic gold on, materials off | Prepares a gold draft after the countdown | Reviewed materials with surplus on the final letter |
+| Automatic gold on, materials on | Sends eligible material parcels and prepares the final gold draft | The same batch can be reviewed first |
 | Automatic gold off | Waits for a mailbox action | Reviewed materials only. **Gold to main** is available separately. |
 
 **Gold returns** shows this character’s wallet, protected reserve, empty-draft postage and gold-only return when a clean native quote is available. Set the delay to **8, 15 or 30 seconds**. Save any whole-gold reserve from **1g** up to **1,000,000g**. The selected reserve also applies to postage on material-only letters. At exactly the reserve there is no postage available for another parcel. If you plan to send materials, combine them with the gold trip, or choose **Materials to main** during the countdown. **Keep** and explicit **Auction** rules are respected on the return. Gold-only mail will send the surplus after actual postage.
@@ -27,6 +27,8 @@ The default floor is **5 gold per unit**. Change it under **Routing rules → Mi
 ![Worked example. From 3g 42s 10c, subtract 30c postage and a 1g reserve to return 2g 41s 80c.](../docs/assets/postage-slip.png)
 
 [Try your own balance and reserve](https://lml-studio.github.io/ForeverGoblinMailer/#preview). Gold-only review shows **No gold to send** for a known zero and **Quote unavailable** for a missing quote. A positive surplus of 1c is sufficient. Each real material letter can still leave with zero gold when its postage is covered. [Gold review fix](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10)
+
+For a manual gold return, choose **Gold to main → Fill gold draft**. Verify the native coins, then click **Send** in WoW. Items-only parcels use the ordinary queue. Every gold-bearing letter waits for your click. A gold-only return is titled **Goblin Mail - Daily Interests**. During a delivery check the tracing reference appears in the body. Open the receiving letter before collecting it.
 
 ## What to do when a parcel stops
 

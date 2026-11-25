@@ -33,7 +33,7 @@ flowchart TD
     D -->|No| H
 ```
 
-This follows **Route my bags** on the main. **Materials to main** uses a separate return branch that honors Keep and auction reservations. [Routing source](https://github.com/LML-Studio/ForeverGoblinMailer/blob/v2.0.0-preview.3/ForeverGoblinMailer/Routing.lua#L42)
+This follows **Route my bags** on the main. **Materials to main** uses a separate return branch that honors Keep and auction reservations. [Routing source](https://github.com/LML-Studio/ForeverGoblinMailer/blob/v2.0.0-preview.4/ForeverGoblinMailer/Routing.lua#L42)
 
 ## From bag to recipient
 
@@ -52,7 +52,9 @@ For gold-only reviews, the dispatcher calculates the transferable copper before 
 stateDiagram-v2
     [*] --> Review
     Review --> Attach: Player approves or enrolled auto-return expires
-    Attach --> Submit: Native readback matches
+    Attach --> Submit: Items only, readback matches
+    Attach --> NativeDraft: Positive enclosed gold
+    NativeDraft --> Submit: Player presses native Send
     Attach --> Stopped: Draft or item changed
     Submit --> Attach: Send success and parcels remain
     Submit --> Accepted: Final send success
@@ -60,7 +62,9 @@ stateDiagram-v2
     Hold --> Review: Player reconciles delivery
 ```
 
-A single in-flight parcel waits for `MAIL_SEND_SUCCESS`. The more general `MAIL_SUCCESS` can accompany inbox operations. A 30-second timeout ends the queue and leaves a delivery hold. WoW saves the hold with normal SavedVariables writes. Blizzard owns any secure confirmation dialog. [Native mail frame](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_MailFrame/MailFrame.lua) · [Mail events](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_APIDocumentationGenerated/MailInfoDocumentation.lua) · [Secure transfer API](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_APIDocumentationGenerated/SecureTransferDocumentation.lua)
+**Gold drafts.** The addon fills the visible native coin editor, verifies its value and leaves the final click to the player. Its passive observer recognizes the native Send handler and a server acknowledgement. A manual edit invalidates attribution. The optional delivery reference lives in the body of new checked letters. Legacy records retain their unique subjects.
+
+A single in-flight parcel waits for `MAIL_SEND_SUCCESS`. The more general `MAIL_SUCCESS` can accompany inbox operations. A 30-second timeout ends the queue and leaves a delivery hold. WoW saves the hold with normal SavedVariables writes. Blizzard owns any secure confirmation dialog. [Native mail frame](https://github.com/Gethe/wow-ui-source/blob/d9c22e32cb240afb82bb2ecefbb78ef935333f59/Interface/AddOns/Blizzard_MailFrame/MailFrame.lua) · [Mail events](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_APIDocumentationGenerated/MailInfoDocumentation.lua) · [Secure transfer API](https://github.com/Gethe/wow-ui-source/blob/c01a87b549bbc19e0f284c1616d18654c91297de/Interface/AddOns/Blizzard_APIDocumentationGenerated/SecureTransferDocumentation.lua)
 
 ## Runtime layout
 

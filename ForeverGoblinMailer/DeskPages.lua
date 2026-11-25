@@ -22,7 +22,7 @@ local purpose = {
 local modes = {{"route","Route my bags","Sort profession materials and auction stock by recipient."},
     {"auction","Auction stock only","Review eligible stock for your auction character."},
     {"materials","Materials to main","Review transferable ingredients for your main."},
-    {"gold","Gold to main","Review the surplus after postage and your reserve."}}
+    {"gold","Gold to main","Fill the native coin fields with the surplus after postage and your reserve. Click Send in WoW to finish."}}
 local function member(role)
     return U.scope and M.member(U.scope,role)
 end
@@ -97,6 +97,9 @@ U.pages.desk=function()
     if not member("main") then
         U.grid({option("Register your main","Open the address book on your main to give return parcels a destination.",
             function() U.navigate("book",true) end,U.icons.main)})
+    end
+    if r and r.phase=="native" then
+        U.section("Confirm in WoW's Send Mail window",M.money(r.gold).." is filled in for "..r.parcel.name..". Check the coins and click WoW's Send. Any native confirmation is yours to accept.")
     end
     if plan then
         manifest(plan)
@@ -286,11 +289,11 @@ U.pages.returns=function()
         U.prefs[key]=value; U.change(msg)
     end
     local auto,mats=U.prefs.auto~=false,U.prefs.withMats==true
-    U.grid({option("Automatic gold  /  "..(auto and "ON" or "OFF"),"Toggle the timed return of surplus gold on this character.",
+    U.grid({option("Automatic gold  /  "..(auto and "ON" or "OFF"),"Fill this alt's surplus into the native draft after the countdown. Use WoW's Send to mail the gold.",
             function() toggle("auto",not auto,auto and "Automatic gold is off." or "Automatic gold is on for the next visit.") end,U.icons.gold,U.locked(),auto),
         option("Include materials  /  "..(mats and "ON" or "OFF"),"Add eligible bag materials to the automatic return. Gold travels in the final parcel.",
             function() toggle("withMats",not mats,mats and "Automatic trips return gold only." or "Automatic trips include materials.") end,U.icons.materials,U.locked(),mats)},2)
-    U.section("Countdown","Choose the time available to cancel before an automatic return.")
+    U.section("Countdown","Choose how long to wait before preparing the return.")
     local delays={}
     for _,value in ipairs({8,15,30}) do
         local n=value
@@ -315,9 +318,9 @@ U.pages.activity=function()
         function() U.confirmAction("clear","Confirm only after checking delivery.",function() U.prefs.pending=nil; U.change("Delivery hold cleared.") end) end,nil,block)})
     local check=U.scope and U.scope.deliveryCheck
     local active=M.check.active(check)
-    U.section("Two-character delivery check","Optional local record. A marked subject lets the receiving character compare gold and stacks before collecting the letter.")
+    U.section("Two-character delivery check","Open the test letter before collecting. A reference in its body lets Activity verify the gold and stacks.")
     U.grid({option(active and "End delivery check" or "Start delivery check",
-        active and "Stop marking new letters. Recorded letters can still be matched." or "Mark up to eight outgoing parcels for two hours. Starting a check sends nothing.",
+        active and "Stop marking new letters. Recorded letters can still be matched." or "Put a reference in up to eight letter bodies over two hours. Subjects stay readable. Starting a check sends nothing.",
         active and M.check.stop or M.check.start,U.icons.activity,U.locked())})
     if type(check)=="table" and type(check.letters)=="table" then
         local accepted,matched=0,0

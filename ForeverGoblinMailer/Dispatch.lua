@@ -1,6 +1,6 @@
 local _, M = ...
 local B = M.box
-local run, countdown
+local run, countdown, nativeHooked
 M.status = "Visit the address book to register your characters."
 M.receipts = {}
 
@@ -18,6 +18,8 @@ function M.activity()
     return run, countdown and math.max(0, math.ceil(countdown.deadline - GetTime()))
 end
 
+local clearOwnedGold
+
 local function stop(message)
     run, M.preview = nil, nil
     M.cancelAuto()
@@ -25,6 +27,7 @@ local function stop(message)
 end
 
 function M.cancel()
+    if run and run.phase == "native" then clearOwnedGold(run) end
     local pending = run and run.phase == "sending"
     stop(pending and "Queue stopped. The submitted parcel may still arrive. Check delivery before clearing the hold."
         or "Stopped. Any unsent attachments are in the native draft.")
@@ -102,22 +105,11 @@ local function stillRouted(r)
     return true
 end
 
-local function send(r)
-    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0) or not B.matches(r.parcel, #r.parcel.items) then
-        return stop("The address, draft or attachments changed. Inspect the native draft.")
-    end
-    local postage = GetSendMailPrice()
-    local wallet = math.min(r.budget, GetMoney())
-    local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels, r.plan.reserve)
-    if not copper then return stop("The postage quote or available balance cannot cover this parcel and its reserve.") end
-    if r.plan.goldLetter and copper ~= r.plan.goldAmount then return stop("The gold amount changed. Review the new total before sending.") end
-    if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and your reserve.") end
-    r.cost, r.phase = postage + copper, "sending"
-    r.plan.prefs.pending = {recipient=r.parcel.name, gold=copper, stacks=#r.parcel.items, postage=postage}
+local function awaitReceipt(r)
+    r.phase = "sending"
+    r.plan.prefs.pending = {recipient=r.parcel.name, gold=r.gold, stacks=#r.parcel.items, postage=r.postage}
+    M.check.submitting(r, r.gold, r.postage, r.walletBefore)
     say(("Awaiting confirmation for parcel %d/%d to %s."):format(r.index, #r.plan.parcels, r.parcel.name))
-    M.check.submitting(r, copper, postage)
-    local ok, reason = B.submit(r.parcel, r.subject, copper, postage, r.plan.alt, r.plan.reserve)
-    if not ok then r.plan.prefs.pending = nil; return stop(reason) end
     local sentIndex = r.index
     schedule(r, 30, function()
         if r.phase == "sending" and r.index == sentIndex then
@@ -126,8 +118,60 @@ local function send(r)
     end)
 end
 
+local function preparedMatches(r, allowPending)
+    return B.draftMatches(r.parcel, r.subject, r.gold, r.body, allowPending) and B.matches(r.parcel, #r.parcel.items)
+end
+
+-- Passive post-hook on Blizzard's ordinary mail form. The player controls
+-- Send and every secure confirmation. An edited letter cannot satisfy this run.
+function M.nativeSubmitted()
+    local r = run
+    if not r or r.phase ~= "native" then return end
+    if not preparedMatches(r, true) then return stop("The native draft changed. Check the actual sent letter in the inbox.") end
+    awaitReceipt(r)
+end
+
+clearOwnedGold = function(r)
+    if M.open and not InCombatLockdown() and preparedMatches(r) then B.fillGold(0) end
+end
+
+local function checkPrepared(r)
+    if not M.open or r.phase ~= "native" or C_Mail.IsCommandPending() then return end
+    if not preparedMatches(r) then return stop("The prepared draft changed. Check the native mail form.") end
+    if not B.affords(r.gold, r.postage, r.plan.reserve) then
+        clearOwnedGold(r)
+        return stop("The postage or wallet changed. Review the gold amount again.")
+    end
+    r.walletBefore = GetMoney()
+end
+
+local function send(r)
+    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0, r.body) or not B.matches(r.parcel, #r.parcel.items) then
+        return stop("The address, draft or attachments changed. Inspect the native draft.")
+    end
+    local postage = GetSendMailPrice()
+    local wallet = math.min(r.budget, GetMoney())
+    local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels, r.plan.reserve)
+    if not copper then return stop("The postage quote or available balance cannot cover this parcel and its reserve.") end
+    if r.plan.goldLetter and copper ~= r.plan.goldAmount then return stop("The gold amount changed. Review the new total before sending.") end
+    if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and your reserve.") end
+    r.gold, r.postage, r.cost, r.walletBefore = copper, postage, postage+copper, GetMoney()
+    if copper > 0 then
+        if not B.affords(copper, postage, r.plan.reserve) then return stop("The wallet or postage changed. Review the gold again.") end
+        if not B.fillGold(copper) or not preparedMatches(r) then
+            return stop("The visible coin fields could not be verified. Check the native draft before sending.")
+        end
+        r.phase = "native"
+        if r.checkLetter then r.checkLetter.preparedGold = copper end
+        return say(M.money(copper).." is filled in. Press Send in WoW's Send Mail window.")
+    end
+    awaitReceipt(r)
+    local ok, reason = B.submitItems(r)
+    if not ok then r.plan.prefs.pending = nil; return stop(reason) end
+end
+
 local function attachNext(r)
-    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0) then
+    if not stillRouted(r) or not B.draftMatches(r.parcel, r.subject, 0, r.body) then
         return stop("The draft changed or the client requires attention. Inspect the native mail window.")
     end
     if not B.matches(r.parcel, r.attached) then
@@ -150,9 +194,14 @@ local function beginParcel(r)
         local amount = M.payment(math.min(r.budget, GetMoney()), GetSendMailPrice(), true, true, r.plan.reserve)
         if not amount or amount == 0 then return stop("No surplus after postage and your reserve.") end
     end
-    r.subject = ("Goblin Mail / %s %d of %d"):format(r.plan.mode, r.index, #r.plan.parcels)
-    r.subject = M.check.prepare(r, r.subject)
-    local ok, reason = B.begin(r.parcel, r.subject)
+    local role = next(r.parcel.roles)
+    local singleRole = role and not next(r.parcel.roles, role) and role
+    if #r.parcel.items == 0 then r.subject = "Goblin Mail - Daily Interests"
+    elseif r.plan.mode == "materials" then r.subject = "Goblin Mail - Materials for Main"
+    elseif singleRole == "auction" then r.subject = "Goblin Mail - Auction Stock"
+    else r.subject = "Goblin Mail - " .. (M.labels[singleRole] or "Profession") .. " Supplies" end
+    r.body = M.check.prepare(r, r.subject)
+    local ok, reason = B.begin(r.parcel, r.subject, r.body)
     if not ok then return stop(reason) end
     r.phase, r.attached, r.waitUntil = "attaching", 0, nil
     attachNext(r)
@@ -178,6 +227,10 @@ function M.event(event)
     if event == "MAIL_SHOW" then
         if M.open then return end
         M.open = true
+        if not nativeHooked and hooksecurefunc and SendMailFrame_SendMail then
+            hooksecurefunc("SendMailFrame_SendMail", M.nativeSubmitted)
+            nativeHooked = true
+        end
         say("Choose a route to review your bags.")
         local scope, prefs, guid = M.context()
         local main = scope and M.member(scope, "main")
@@ -186,12 +239,15 @@ function M.event(event)
         local delay = M.delay(prefs)
         local ticket = {deadline=GetTime() + delay}
         countdown = ticket
-        say(("Return to %s in %d seconds. Select Stop to cancel."):format(main.name, delay))
+        say(("Prepare a return to %s in %d seconds. Select Stop to cancel."):format(main.name, delay))
         C_Timer.After(delay, function()
             if countdown ~= ticket or not M.open or run then return end
             local mode = prefs.withMats and "materials" or "gold"
             if M.review(mode, true) then M.dispatch() end
         end)
+    elseif (event == "PLAYER_MONEY" or event == "MAIL_SEND_INFO_UPDATE") and run and run.phase == "native" then
+        -- Let Blizzard finish processing a real click before inspecting its fields.
+        schedule(run, 0, checkPrepared)
     elseif (event == "PLAYER_MONEY" or event == "MAIL_SEND_INFO_UPDATE") and M.preview and M.preview.goldLetter and not run then
         quoteGoldLetter(M.preview)
         say(M.preview.goldReason or "Check the current gold amount before sending.")

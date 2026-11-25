@@ -49,13 +49,21 @@ local function footerState()
     local label=canSend and ("Send "..#M.preview.parcels..(#M.preview.parcels==1 and " parcel" or " parcels")) or "Send reviewed parcels"
     local reason
     if not canSend then reason=r and "Wait for the current parcel." or (U.page~="desk" and "Return to Mail desk to review and send." or "Prepare and inspect a parcel first.") end
+    if r and r.phase=="native" then
+        label="Use WoW's Send"
+        reason="Your coins are in the native form. Verify the amount there, then click Send."
+    end
     if U.page=="desk" and M.preview and M.preview.goldReason then
         label=M.preview.goldAmount==0 and "No gold to send" or "Quote unavailable"
         reason=M.preview.goldReason
     end
     if U.page=="desk" then
-        command(send,footer,U.width-right-184,9,166,34,label,
-            "Submit the visible manifest to its named recipients. Wait for each server acknowledgement.",M.dispatch,reason,true)
+        local help="Submit reviewed items. When a letter carries gold, confirm the filled amount with WoW's Send button."
+        if canSend and M.preview.goldLetter then
+            label="Fill gold draft"
+            help="Fill the native recipient, subject and coin fields with the amount shown. Click Send in WoW to finish."
+        end
+        command(send,footer,U.width-right-184,9,166,34,label,help,M.dispatch,reason,true)
     elseif U.page=="rules" and U.state.ruleID then
         command(send,footer,U.width-right-184,9,166,34,"Apply item rule",
             "Save the highlighted destination for the inspected item across this realm and faction.",U.saveRule,U.locked(),true)
@@ -279,6 +287,7 @@ events:SetScript("OnEvent",function(_,event,unit)
     if event=="PLAYER_MONEY" then M.check.walletChanged() end
     if event=="MAIL_INBOX_UPDATE" or event=="MAIL_SHOW" then M.check.observeInbox() end
     if event=="MAIL_SHOW" then
+        M.check.watchInbox()
         C_Timer.After(0,function() if M.open then U.style(); addLauncher(); show("desk") end end)
     elseif event=="MAIL_CLOSED" or event=="PLAYER_REGEN_DISABLED" then
         if window then window:Hide() end

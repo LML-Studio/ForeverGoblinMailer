@@ -1,13 +1,13 @@
 # Release integrity
 
-Download **[ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/ForeverGoblinMailer.zip)** and **[SHA256SUMS.txt](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/SHA256SUMS.txt)** from the same release. On Windows, run the following in the download directory.
+Download **[ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.4/ForeverGoblinMailer.zip)** and **[SHA256SUMS.txt](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.4/SHA256SUMS.txt)** from the same release. On Windows, run the following in the download directory.
 
 ```powershell
 Get-FileHash -Algorithm SHA256 -LiteralPath .\ForeverGoblinMailer.zip
 Get-Content -LiteralPath .\SHA256SUMS.txt
 ```
 
-Compare all 64 hexadecimal digits. A match identifies the published archive. Inspect its contents to assess trust. This ZIP contains one TOC, nine Lua files and one uncompressed TGA header illustration under a single `ForeverGoblinMailer` folder. You can read every file before enabling it. [Tagged source](https://github.com/LML-Studio/ForeverGoblinMailer/tree/v2.0.0-preview.3/ForeverGoblinMailer)
+Compare all 64 hexadecimal digits. A match identifies the published archive. Inspect its contents to assess trust. This ZIP contains one TOC, nine Lua files and one uncompressed TGA header illustration under a single `ForeverGoblinMailer` folder. You can read every file before enabling it. [Tagged source](https://github.com/LML-Studio/ForeverGoblinMailer/tree/v2.0.0-preview.4/ForeverGoblinMailer)
 
 ## What the checksum verifies
 
@@ -20,7 +20,7 @@ flowchart LR
     M -->|No| D["Discard copy and download again"]
 ```
 
-Preview 3’s ZIP fingerprint is `23367a9530f808ede009750d312a08639e57216da0fd328f662a98fbbdce7e4f`. A match confirms identity with the published archive. Review the publisher and source to assess what the addon can do. [Verification record](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-3-checks)
+Preview 4’s ZIP fingerprint is `28ac14be0efa9eb82827ffad6c8cccc3e22710751514f73b61fd034496b87172`. A match confirms identity with the published archive. Review the publisher and source to assess what the addon can do. [Verification record](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-4-checks)
 
 ## What the optional delivery check records
 

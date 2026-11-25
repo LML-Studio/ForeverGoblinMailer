@@ -17,7 +17,7 @@ function B.available()
         and SendMailMoney and SendMailCODButton and SendMailSendMoneyButton
         and MoneyInputFrame_GetCopper and MoneyInputFrame_SetCopper and GetSendMailPrice
         and HasSendMailItem and GetSendMailItem and GetSendMailItemLink and GetCursorInfo
-        and SetSendMailCOD and SetSendMailMoney and SendMail and B.limit()
+        and SendMail and B.limit()
         and C_Mail and C_Mail.IsCommandPending and C_Container and C_Item and ItemLocation
         and C_Timer and C_Timer.After and MailFrameTab_OnClick and ClickSendMailItemButton
 end
@@ -144,16 +144,16 @@ function B.matches(parcel, count)
     return true
 end
 
-function B.draftMatches(parcel, subject, copper)
+function B.draftMatches(parcel, subject, copper, body, allowPending)
     return B.available() and SendMailFrame:IsVisible() and SendMailFrame.sendMode ~= "reply"
         and not (SendMailFrameLockSendMail and SendMailFrameLockSendMail:IsShown())
-        and not C_Mail.IsCommandPending() and not GetCursorInfo()
+        and (allowPending or not C_Mail.IsCommandPending()) and not GetCursorInfo()
         and SendMailNameEditBox:GetText() == parcel.name and SendMailSubjectEditBox:GetText() == subject
-        and SendMailBodyEditBox:GetText() == "" and MoneyInputFrame_GetCopper(SendMailMoney) == copper
+        and SendMailBodyEditBox:GetText() == (body or "") and MoneyInputFrame_GetCopper(SendMailMoney) == copper
         and not SendMailCODButton:GetChecked() and SendMailSendMoneyButton:GetChecked()
 end
 
-function B.begin(parcel, subject)
+function B.begin(parcel, subject, body)
     local ok, reason = B.compose()
     if not ok then return nil, reason end
     if not SendMailFrame:IsVisible() then MailFrameTab_OnClick(nil, 2) end
@@ -161,22 +161,40 @@ function B.begin(parcel, subject)
     if not ok then return nil, reason end
     SendMailNameEditBox:SetText(parcel.name)
     SendMailSubjectEditBox:SetText(subject)
+    if body ~= "" and body then SendMailBodyEditBox:SetText(body) end
     return true
 end
 
-function B.submit(parcel, subject, copper, quote, alt, reserve)
-    MoneyInputFrame_SetCopper(SendMailMoney, copper)
-    if not B.draftMatches(parcel, subject, copper) or not B.matches(parcel, #parcel.items) then
-        return nil, "Final native draft readback did not match."
+function B.affords(copper, postage, reserve)
+    local price, wallet = copperValue(GetSendMailPrice), copperValue(GetMoney)
+    return price == postage and wallet and wallet >= copper + postage + reserve
+end
+
+-- Use the same visible money editor that Blizzard's own Send button reads.
+-- Only the player's native click commits positive money or opens a secure prompt.
+function B.fillGold(copper)
+    local ok = pcall(MoneyInputFrame_SetCopper, SendMailMoney, copper)
+    if not ok then return end
+    if MoneyInputFrame_GetCopper(SendMailMoney) == copper then return true end
+    local frame = SendMailMoney
+    if frame.goldOnly or not (frame.gold and frame.silver and frame.copper) then return end
+    local values = {math.floor(copper/10000), math.floor(copper/100)%100, copper%100}
+    local boxes = {frame.gold, frame.silver, frame.copper}
+    for _, box in ipairs(boxes) do
+        if not box:IsVisible() or not box.SetNumber then return end
     end
-    SetSendMailCOD(0)
-    SetSendMailMoney(copper)
-    local finalPrice = GetSendMailPrice()
-    if finalPrice ~= quote or GetMoney() < copper + quote + (alt and math.max(10000, reserve or 10000) or 0) then
-        SetSendMailMoney(0)
-        MoneyInputFrame_SetCopper(SendMailMoney, 0)
-        return nil, "Postage or balance changed. The amount was cleared; review the draft."
+    for i, box in ipairs(boxes) do box:SetNumber(values[i]) end
+    return MoneyInputFrame_GetCopper(frame) == copper
+end
+
+function B.submitItems(r)
+    if not B.draftMatches(r.parcel, r.subject, 0, r.body) or not B.matches(r.parcel, #r.parcel.items)
+        or not B.affords(0, r.postage, r.plan.alt and r.plan.reserve or 0) then
+        return nil, "Draft, postage or wallet changed. Review the material parcel again."
     end
-    SendMail(parcel.name, subject, "")
+    if (GetSendMailMoney and copperValue(GetSendMailMoney) ~= 0) or (GetSendMailCOD and copperValue(GetSendMailCOD) ~= 0) then
+        return nil, "The native draft has a money or COD amount. Inspect it before sending."
+    end
+    SendMail(r.parcel.name, r.subject, r.body)
     return true
 end

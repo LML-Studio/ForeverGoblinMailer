@@ -62,7 +62,7 @@ test("manual drafts, replies, cursor, COD, pending commands and manual attachmen
         if block=="subject" then f.env.SendMailSubjectEditBox.text="Mine"
         elseif block=="recipient" then f.env.SendMailNameEditBox.text="Mine"
         elseif block=="body" then f.env.SendMailBodyEditBox.text="Mine"
-        elseif block=="money" then f.nativeMoney=1
+        elseif block=="money" then f.env.MoneyInputFrame_SetCopper(f.env.SendMailMoney,1)
         elseif block=="reply" then f.env.SendMailFrame.sendMode="reply"
         elseif block=="cursor" then f.cursor=f.bags[1]
         elseif block=="cod" then f.env.SendMailCODButton.checked=true
@@ -95,7 +95,7 @@ test("recipient changes and extra native attachments abort during staging",funct
 end)
 test("automatic gold uses real postage and leaves exactly one gold",function()
     local f,p=alt(); f.wallet=28976; f.postage=73; f.advance(7.9); eq(#f.outbox,0)
-    f.advance(.2); eq(#f.outbox,1); eq(f.outbox[1].to,"Juniper Silver"); eq(f.outbox[1].gold,18903)
+    f.advance(.2); eq(#f.outbox,0); eq(f.coins(),18903); f.nativeSend(); eq(#f.outbox,1); eq(f.outbox[1].to,"Juniper Silver"); eq(f.outbox[1].gold,18903)
     assert(p.pending); f.ack(); eq(f.wallet,10000); eq(p.pending,nil)
     f.M.event("MAIL_SHOW"); f.advance(10); eq(#f.outbox,1)
 end)
@@ -105,7 +105,7 @@ end)
 test("optional multi-parcel material return puts surplus on the final envelope",function()
     local f=alt(true); for i=1,3 do f.item(i,9000+i,{class=7,sub=0}) end
     f.scope.rules[9004]="keep"; f.item(4,9004); f.advance(9); eq(f.outbox[1].gold,0)
-    f.ack(); f.advance(1); eq(f.outbox[2].stacks,1); eq(f.outbox[2].gold,29910); f.ack(); eq(f.wallet,10000)
+    f.ack(); f.advance(1); eq(#f.outbox,1); f.nativeSend(); eq(f.outbox[2].stacks,1); eq(f.outbox[2].gold,29910); f.ack(); eq(f.wallet,10000)
 end)
 test("manual material-only returns preserve the reserve and auction assignments",function()
     local f=alt(); f.item(1,2589); f.item(2,10940); f.scope.rules[10940]="auction"; f.wallet=10040
@@ -124,7 +124,7 @@ test("stopping, mailbox closure and combat cancel the delayed sweep",function()
 end)
 test("unconfirmed, failed and interrupted sends remain on hold across reopen",function()
     for _,event in ipairs({"timeout","MAIL_FAILED","MAIL_CLOSED"}) do
-        local f,p=alt(); f.advance(9); if event=="timeout" then f.advance(31) else f.M.event(event) end
+        local f,p=alt(); f.advance(9); f.nativeSend(); if event=="timeout" then f.advance(31) else f.M.event(event) end
         assert(p.pending); f.M.event("MAIL_CLOSED"); f.M.event("MAIL_SHOW"); f.advance(12); eq(#f.outbox,1)
     end
 end)
@@ -156,8 +156,9 @@ test("exact-build recipes cover new reagents and shared-reagent overrides",funct
     local count=0; for _ in pairs(f.M.recipeOwners) do count=count+1 end; eq(count,589)
 end)
 test("a price change after attaching money cannot break the reserve",function()
-    local f,p=alt(); f.env.GetSendMailPrice=function() return f.charged>0 and 60 or 30 end
-    f.advance(9); eq(#f.outbox,0); eq(f.nativeMoney,0); eq(f.charged,0); eq(p.pending,nil)
+    local f,p=alt(); f.advance(9); assert(f.coins()>0)
+    f.postage=60; f.M.event("MAIL_SEND_INFO_UPDATE"); f.advance(0)
+    eq(#f.outbox,0); eq(f.coins(),0); eq(f.charged,0); eq(p.pending,nil)
 end)
 test("normal mailbox launcher, dispatch, review, send and slash settings are wired",function()
     local f=fixture(); f.item(1,2589)
@@ -218,7 +219,7 @@ test("auction and keep rules identify the held or priced physical stack",functio
 end)
 test("per-alt reserve applies to final readback and invalid saved reserves fall back to one gold",function()
     local f=fixture(); f.guid="char-tailor"; local _,p=f.M.context(); p.reserveGold=2; p.delaySeconds=15
-    openDesk(f); local _,t=f.M.activity(); eq(t,15); f.advance(14); eq(#f.outbox,0); f.advance(1.1); eq(f.outbox[1].gold,19970)
+    openDesk(f); local _,t=f.M.activity(); eq(t,15); f.advance(14); eq(#f.outbox,0); f.advance(1.1); eq(f.coins(),19970); f.nativeSend(); eq(f.outbox[1].gold,19970)
     f.ack(); eq(f.wallet,20000); eq(f.M.receipts[1].postage,30); eq(f.M.receipts[1].recipient,"Juniper Silver")
     p.reserveGold=0; eq(f.M.reserve(p),10000); p.reserveGold="bad"; eq(f.M.reserve(p),10000)
 end)
@@ -236,7 +237,7 @@ test("numeric settings enforce floors and in-flight queues lock rule edits",func
     f.click("Routing rules"); assert(f.button("Save auction floor").block); f.advance(1); eq(#f.outbox,1)
 end)
 test("accepted receipts display separately from uncertain deliveries",function()
-    local f=fixture(); f.guid="char-tailor"; openDesk(f); f.advance(9); f.M.event("MAIL_SUCCESS"); eq(#f.M.receipts,0)
+    local f=fixture(); f.guid="char-tailor"; openDesk(f); f.advance(9); f.nativeSend(); f.M.event("MAIL_SUCCESS"); eq(#f.M.receipts,0)
     f.advance(31); f.click("Activity"); f.click("Clear delivery hold"); assert(f.M.desk.prefs.pending)
     f.click("Confirm checked delivery"); eq(f.M.desk.prefs.pending,nil); eq(#f.M.receipts,0)
 end)
@@ -269,7 +270,9 @@ end)
 test("one copper survives review, native submission, acknowledgement and wallet debit",function()
     local f=goldDesk(10031)
     eq(#f.M.preview.parcels,1); eq(f.M.preview.goldAmount,1)
-    f.click("Send 1 parcel"); eq(#f.outbox,1); eq(f.outbox[1].gold,1); eq(f.outbox[1].fee,30)
+    f.click("Fill gold draft"); eq(#f.outbox,0); eq(f.env.SendMailMoney.copper:GetNumber(),1)
+    eq(f.env.SendMailSubjectEditBox:GetText(),"Goblin Mail - Daily Interests"); f.nativeSend()
+    eq(#f.outbox,1); eq(f.outbox[1].gold,1); eq(f.outbox[1].fee,30)
     f.ack(); eq(f.wallet,10000); eq(f.M.receipts[1].gold,1)
 end)
 test("unknown postage stays distinct from a known zero and native updates refresh the offer",function()
@@ -279,14 +282,14 @@ test("unknown postage stays distinct from a known zero and native updates refres
     f.env.GetSendMailPrice=function() return 30 end
     f.wallet=10030; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,0)
     f.wallet=10031; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,1)
-    f.click("Send 1 parcel"); eq(f.outbox[1].gold,1)
+    f.click("Fill gold draft"); f.nativeSend(); eq(f.outbox[1].gold,1)
 end)
 test("a changed quote or balance before approval requires the displayed amount again",function()
-    local f=goldDesk(20031,2); f.wallet=20030; f.click("Send 1 parcel")
+    local f=goldDesk(20031,2); f.wallet=20030; f.click("Fill gold draft")
     eq(#f.outbox,0); assert(f.button("No gold to send").block)
     f.wallet=20035; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,5)
-    f.postage=31; f.click("Send 1 parcel"); eq(#f.outbox,0); eq(f.M.preview.goldAmount,4)
-    f.click("Send 1 parcel"); eq(f.outbox[1].gold,4); f.ack(); eq(f.wallet,20000)
+    f.postage=31; f.click("Fill gold draft"); eq(#f.outbox,0); eq(f.M.preview.goldAmount,4)
+    f.click("Fill gold draft"); f.nativeSend(); eq(f.outbox[1].gold,4); f.ack(); eq(f.wallet,20000)
 end)
 test("zero gold permits a real material letter exactly at the postage boundary",function()
     local f=fixture(); f.guid="char-tailor"; f.wallet=10030; f.item(1,2589)
@@ -298,8 +301,11 @@ test("automatic gold and empty material sweeps share the one-copper boundary",fu
     for _,mats in ipairs({false,true}) do
         for _,balance in ipairs({10030,10031}) do
             local f=alt(mats); f.wallet=balance; f.advance(9)
-            eq(#f.outbox,balance==10031 and 1 or 0)
-            if #f.outbox==1 then eq(f.outbox[1].gold,1); f.ack(); eq(f.wallet,10000) end
+            eq(#f.outbox,0)
+            if balance==10031 then
+                eq(f.coins(),1); eq(f.env.SendMailSubjectEditBox:GetText(),"Goblin Mail - Daily Interests")
+                f.nativeSend(); eq(f.outbox[1].gold,1); f.ack(); eq(f.wallet,10000)
+            end
         end
     end
 end)
@@ -360,23 +366,28 @@ test("the opt-in evidence matches an acknowledged physical stack in a second cha
     eq(#f.outbox,0); eq(#check.letters,0); f.item(1,2589,{stackCount=4}); openDesk(f)
     f.click("Route my bags"); f.click("Send 1 parcel"); f.advance(1)
     local letter=check.letters[1]; eq(letter.before,40000); eq(letter.gold,0); eq(letter.postage,30)
-    eq(letter.accepted,nil); assert(f.outbox[1].subject:find("[FGM ",1,true)); f.ack(); assert(letter.accepted)
+    eq(letter.accepted,nil); eq(f.outbox[1].subject,"Goblin Mail - Tailoring Supplies"); eq(f.outbox[1].body,letter.body); f.ack(); assert(letter.accepted)
     eq(letter.afterAck,39970); eq(letter.inboxMatched,nil)
     local receiver=fixture(); receiver.env.ForeverGoblinMailerDB=f.env.ForeverGoblinMailerDB
     receiver.guid="char-tailor"; receiver.player="Thimble Blue"; receiver.env.GetInboxNumItems=function() return 2,2 end
     receiver.env.GetInboxHeaderInfo=function(i) return nil,nil,"Juniper Silver",i==1 and "unrelated" or letter.subject,0,0,30,1,false,false end
     local count=3; receiver.env.GetInboxItem=function(i,slot) assert(i==2); if slot==1 then return "Cloth",2589,0,count end end
     openDesk(receiver); eq(letter.inboxMatched,nil)
-    count=4; receiver.listener.scripts.OnEvent(receiver.listener,"MAIL_INBOX_UPDATE"); assert(letter.inboxMatched)
+    count=4; receiver.listener.scripts.OnEvent(receiver.listener,"MAIL_INBOX_UPDATE"); eq(letter.inboxMatched,nil)
+    receiver.env.GetInboxText=function(index) eq(index,2); return letter.body end
+    receiver.env.InboxFrame_OnClick(nil,2); receiver.advance(0); assert(letter.inboxMatched)
     eq(#receiver.outbox,0); eq(#receiver.M.receipts,0)
 end)
 test("the evidence recorder is opt-in, scoped, bounded and never accepts a returned or COD letter",function()
-    local f=goldDesk(10031); f.click("Send 1 parcel"); assert(not f.outbox[1].subject:find("FGM",1,true))
+    local f=goldDesk(10031); f.click("Fill gold draft"); f.nativeSend()
+    eq(f.outbox[1].subject,"Goblin Mail - Daily Interests"); eq(f.outbox[1].body,"")
     f.ack(); f.M.check.start(); local check=f.scope.deliveryCheck; f.wallet=10031
-    f.M.review("gold"); f.M.dispatch(); local l=check.letters[1]; f.ack()
+    f.M.review("gold"); f.M.dispatch(); local l=check.letters[1]; f.nativeSend()
+    eq(f.outbox[2].subject,"Goblin Mail - Daily Interests"); eq(f.outbox[2].body,l.body); f.ack()
     eq(l.gold,1); eq(l.afterAck,10000); f.M.check.stop(); eq(f.M.check.active(check),false)
     f.guid="char-main"; f.player="Juniper Silver"
     f.env.GetInboxNumItems=function() return 1 end; f.env.GetInboxItem=function() end
+    f.env.InboxFrame.openMailID=1; f.env.OpenMailFrame.visible=true; f.env.GetInboxText=function() return l.body end
     local cod,returned=1,false
     f.env.GetInboxHeaderInfo=function() return nil,nil,l.sender,l.subject,1,cod,30,nil,false,returned end
     f.M.check.observeInbox(); eq(l.inboxMatched,nil)
@@ -386,4 +397,60 @@ test("the evidence recorder is opt-in, scoped, bounded and never accepts a retur
     for i=1,8 do check.letters[i]={} end
     assert(not f.M.check.active(check)); f.M.check.start(); f.advance(7201); assert(not f.M.check.active(f.scope.deliveryCheck))
 end)
+
+test("gold preparation fills the three visible coin fields and waits for the player's native click",function()
+    local f=goldDesk(50664); local coins=f.env.SendMailMoney
+    f.env.SetSendMailMoney=function() error("only the native button may commit gold") end
+    f.click("Fill gold draft")
+    eq(coins.gold:GetNumber(),4); eq(coins.silver:GetNumber(),6); eq(coins.copper:GetNumber(),34)
+    eq(f.env.SendMailSubjectEditBox:GetText(),"Goblin Mail - Daily Interests"); eq(#f.outbox,0)
+    assert(f.button("Use WoW's Send").block); f.advance(45); eq(#f.outbox,0)
+    f.nativeSend(); eq(f.outbox[1].gold,40634); eq(f.outbox[1].fee,30); f.ack(); eq(f.wallet,10000)
+end)
+test("a native edit or abandoned draft never creates a fictitious receipt or delivery hold",function()
+    local f=goldDesk(20031,2); f.click("Fill gold draft"); local _,prefs=f.M.context()
+    f.M.cancel(); eq(f.coins(),0); eq(prefs.pending,nil); eq(#f.outbox,0)
+    f=goldDesk(10031); f.click("Fill gold draft"); f.env.SendMailNameEditBox:SetText("Edited Recipient")
+    f.nativeSend(); f.ack(); eq(#f.M.receipts,0)
+    f=goldDesk(10031); f.click("Fill gold draft"); f.env.MoneyInputFrame_SetCopper(f.env.SendMailMoney,7)
+    f.M.cancel(); eq(f.coins(),7)
+end)
+test("an owned gold draft loses its amount if the wallet can no longer protect the reserve",function()
+    local f=goldDesk(10031); f.click("Fill gold draft"); f.wallet=10030
+    f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); f.advance(0)
+    eq(f.coins(),0); eq(#f.outbox,0); eq(f.M.busy(),false)
+end)
+test("visible editable coin boxes fill a draft when the normal helper leaves them empty",function()
+    local f=goldDesk(10031); f.env.MoneyInputFrame_SetCopper=function() end
+    f.click("Fill gold draft"); eq(f.coins(),1); eq(f.env.SendMailMoney.copper:GetNumber(),1); eq(#f.outbox,0)
+    f.nativeSend(); f.ack(); eq(f.wallet,10000)
+end)
+test("subjects describe auction, mixed supplies and material returns without queue counters",function()
+    local f=main(); f.item(1,701,{class=4,quality=2}); f.scope.rules[701]="auction"
+    f.M.review("auction"); f.M.dispatch(); f.advance(1); eq(f.outbox[1].subject,"Goblin Mail - Auction Stock")
+    f=main(); f.M.enroll(f.scope,"char-tailor","enchanter","Thimble Blue"); f.item(1,2589); f.item(2,10940)
+    f.M.review("route"); f.M.dispatch(); f.advance(1); eq(f.outbox[1].subject,"Goblin Mail - Profession Supplies")
+    f=alt(); f.item(1,2589); f.M.review("materials",false); f.M.dispatch(); f.advance(1)
+    eq(f.outbox[1].subject,"Goblin Mail - Materials for Main")
+end)
+test("identical titles match only the opened letter's reference and legacy unique subjects still work",function()
+    local f=fixture(); local subject="Goblin Mail - Daily Interests"
+    local function sample(body,title)
+        return {subject=title or subject,body=body,sender="Thimble Blue",recipient="char-main",gold=1,items={}}
+    end
+    local a,b,legacy=sample("Reference A"),sample("Reference B"),sample(nil,"Old [FGM 100-1.3]")
+    f.scope.deliveryCheck={letters={a,b,legacy}}; local reads=0
+    f.env.GetInboxNumItems=function() return 3 end
+    f.env.GetInboxHeaderInfo=function(i)
+        local title=i==1 and subject or (i==2 and "Unrelated" or legacy.subject)
+        return nil,nil,"Thimble Blue",title,1,0,30,nil,false,false
+    end
+    f.env.GetInboxItem=function() end
+    f.env.GetInboxText=function(i) eq(i,1); reads=reads+1; return "Reference B" end
+    openDesk(f); assert(legacy.inboxMatched); eq(reads,0)
+    f.env.InboxFrame_OnClick(nil,2); f.advance(0); eq(reads,0)
+    f.env.InboxFrame_OnClick(nil,1); f.advance(0); eq(reads,1)
+    eq(a.inboxMatched,nil); assert(b.inboxMatched)
+end)
+
 print(("%d scenarios passed"):format(passed))
