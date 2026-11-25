@@ -6,6 +6,10 @@ Use **Address book** on the character you are enrolling. The name comes from For
 
 For shared ingredients, paste an item link or enter a numeric item ID in **Routing rules** and choose **Inspect item**, select a profession, **Auction alt**, or **Keep in bags**, then **Apply item rule**. Choose **Automatic** to remove that override. Rules apply to all matching item IDs on the same realm and faction. One character can own more than one profession. An item already on its destination character stays there.
 
+![The item inspector shows Wool Cloth and its saved Keep rule](../docs/assets/desk/routing-rules.png)
+
+*Offline example.* This **Keep in bags** rule takes Wool Cloth out of Tailoring shipments. Select **Automatic** and **Apply item rule** to restore the material route.
+
 ## Auction stock
 
 The default floor is **5 gold per unit**. Change it under **Routing rules → Minimum gold per unit**. Auctionator supplies an optional cached item-link quote for eligible weapons, armor, recipes and miscellaneous items. A stack of twenty items valued at 30s each stays under a 5g per-unit floor. A missing quote holds the item. For a specific collectible or item outside those groups, set an explicit Auction rule. Check your market before mailing stock. [Quote-age tracking](https://github.com/LML-Studio/ForeverGoblinMailer/issues/6)
@@ -20,11 +24,15 @@ The default floor is **5 gold per unit**. Change it under **Routing rules → Mi
 
 **Gold returns** shows this character’s wallet, protected reserve, empty-draft postage and gold-only return when a clean native quote is available. Set the delay to **8, 15 or 30 seconds**. Save any whole-gold reserve from **1g** up to **1,000,000g**. The selected reserve also applies to postage on material-only letters. At exactly the reserve there is no postage available for another parcel. If you plan to send materials, combine them with the gold trip, or choose **Materials to main** during the countdown. **Keep** and explicit **Auction** rules are respected on the return. Gold-only mail will send the surplus after actual postage.
 
+![Worked example. From 3g 42s 10c, subtract 30c postage and a 1g reserve to return 2g 41s 80c.](../docs/assets/postage-slip.png)
+
+[Try your own balance and reserve](https://lml-studio.github.io/ForeverGoblinMailer/#preview). Preview 2 can offer a gold-only review at zero surplus. Submitting it stops before sending. Check **Gold returns** for the amount before approving. [Known issue #10](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10)
+
 ## What to do when a parcel stops
 
 | Panel message or symptom | What to check |
 | --- | --- |
-| No active route buttons | Check your current character’s role, enrolled main, realm and faction. Close combat and reopen the mailbox. |
+| No active route buttons | Check your current character’s role, enrolled main, realm and faction. Wait until combat ends and reopen the mailbox. |
 | No address / choose a profession rule | Enroll the destination on that character, or assign the shared material by item ID. |
 | Item data pending | Wait for the tooltip to load and run the review again. |
 | Current draft is in use | Finish or clear your own draft. A reply, COD, money, cursor item or existing attachment prevents starting. |

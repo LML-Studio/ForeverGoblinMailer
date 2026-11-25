@@ -98,6 +98,32 @@ output { display:block; font:500 clamp(20px,2.15vw,29px)/1.22 var(--serif); marg
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto } }
 
+
+.tour { background:#eee5ce }
+.tour .section-title h2 { margin-bottom:10px }
+.tour-intro { margin:0 0 24px; max-width:640px; color:var(--muted) }
+.tour-layout { display:grid; grid-template-columns:minmax(155px, .62fr) minmax(0,2.1fr); align-items:start; gap:clamp(16px,3.5vw,54px); margin-bottom:20px }
+.tour-nav { display:grid; gap:0; align-items:stretch; border-top:1px solid #a99e82 }
+.tour-nav a { min-height:50px; padding:11px 13px 10px; border-bottom:1px solid #c9bea3; display:block; text-decoration:none }
+.tour-nav strong { display:block; font:500 clamp(18px,1.6vw,24px)/1.1 var(--serif) }
+.tour-nav span { display:block; margin-top:3px; font-size:12px; color:var(--muted) }
+.tour-nav a:hover { background:#e2ddc5 }
+.tour-nav a[aria-selected="true"] { background:#173c30; color:#fff3d4; box-shadow:inset 3px 0 #b48b47 }
+.tour-nav a[aria-selected="true"] span { color:#e2e4ce }
+.tour-plate { margin:0 0 20px; background:#f9f3e3; border:1px solid #c4b696; scroll-margin-top:20px }
+.tour-plate:last-child,.tour-plate[role="tabpanel"] { margin-bottom:0 }
+.tour-plate[hidden] { display:none }
+.tour-plate img { display:block; width:100%; height:auto; background:#173c30 }
+.tour-plate figcaption { display:block; padding:12px 16px; line-height:1.5; color:var(--muted); font-size:14px }
+.tour-plate figcaption strong { font-weight:700; color:var(--ink); margin-right:.35em }
+@media(max-width:700px) {
+  .tour-layout { grid-template-columns:minmax(0,1fr); gap:14px }
+  .tour-nav { grid-template-columns:repeat(2,minmax(0,1fr)) }
+  .tour-nav a { padding:10px; min-height:52px }
+  .tour-nav span { font-size:11px }
+  .tour-plate figcaption { padding:10px 12px }
+}
+
 .hero h1 { font-size:clamp(58px,7.3vw,103px) }
 @media(max-width:475px) {
   .hero h1 { font-size:clamp(46px,12vw,61px) }

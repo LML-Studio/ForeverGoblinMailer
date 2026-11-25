@@ -1,5 +1,7 @@
 # Cover and typography
 
+<img src="sorting-room.jpg" width="760" alt="Original illustration of the goblin sorting room with linen, enchanting dust, scales and a sealed parcel">
+
 The postal counter illustration was created for Forever Mail Fix using the built-in ImageGen tool. The envelope, seal and workshop are original promotional art. The website uses the cover as an illustration of its mail theme. Screens and diagrams labeled as examples represent behavior rather than a capture of the game.
 
 <details><summary>Cover art direction and generation prompt</summary>
@@ -8,6 +10,8 @@ Use case: stylized-concept. Asset type: wide horizontal editorial cover illustra
 
 </details>
 
-Baskervville is used for the landing page display typography. Copyright 2018 The Baskervville Project Authors. The unmodified variable font is distributed with its [SIL Open Font License](fonts/OFL.txt). [Upstream revision](https://github.com/google/fonts/tree/06bfe0d62a98375cb09c942fa18e68bd32cff057/ofl/baskervville)
+The **Preview 2 handbook cover** uses a second original ImageGen illustration of the sorting counter, linen parcels, enchanting dust and brass postal scales. Its typesetting, the postage slip and the download page use the same pine, parchment and brass palette. The six desk illustrations are rendered from the actual addon frames with synthetic data. Client font and icon artwork shown within the interface belongs to its respective owners. These rendered examples contain no player screenshots or account records.
+
+Baskervville is used for the landing page and printed documentation graphics. Copyright 2018 The Baskervville Project Authors. The unmodified variable font is distributed with its [SIL Open Font License](fonts/OFL.txt). [Upstream revision](https://github.com/google/fonts/tree/06bfe0d62a98375cb09c942fa18e68bd32cff057/ofl/baskervville)
 
 **Addon developer — Mini II - Forever - PvE.**

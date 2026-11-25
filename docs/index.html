@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#112d27">
   <meta name="description" content="Download Forever Goblin Mailer. Route crafting materials and auction stock between your WoW Forever characters, and bring surplus gold home.">
-  <meta property="og:title" content="Forever Goblin Mailer"><meta property="og:image" content="https://lml-studio.github.io/ForeverGoblinMailer/assets/mailroom.jpg">
+  <meta property="og:title" content="Forever Goblin Mailer"><meta property="og:image" content="https://lml-studio.github.io/ForeverGoblinMailer/assets/handbook-cover.jpg">
   <title>Forever Goblin Mailer · WoW Forever</title>
   <link rel="stylesheet" href="style.css"><script src="preview.js" defer></script>
 </head>
@@ -12,11 +12,11 @@
 <a class="skip" href="#install">Skip to installation</a>
 <header class="top"><div class="wrap header">
   <a href="#top" class="brand"><span aria-hidden="true" class="mark">✉</span> Goblin Mailer</a>
-  <nav aria-label="Main"><a href="#install">Install</a><a href="#preview">Preview</a><a href="https://github.com/LML-Studio/ForeverGoblinMailer">GitHub ↗</a></nav>
+  <nav aria-label="Main"><a href="#install">Install</a><a href="#desk-tour">Desk tour</a><a href="https://github.com/LML-Studio/ForeverGoblinMailer">GitHub ↗</a></nav>
 </div></header>
 <main id="top">
   <section class="hero" aria-labelledby="name">
-    <img class="hero-art" src="assets/mailroom.jpg" alt="" width="2172" height="724" fetchpriority="high">
+    <img class="hero-art" src="assets/sorting-room.jpg" alt="" width="2172" height="724" fetchpriority="high">
     <div class="wrap hero-inner"><p class="eyebrow"><span class="rule"></span> World of Warcraft Forever</p>
       <h1 id="name">Forever<br><em>Goblin Mailer</em></h1>
       <p class="lede">Cloth to the tailor. Dust to the enchanter. One visit to the mailbox sorts the haul and brings your alt’s spare gold home.</p>
@@ -32,10 +32,51 @@
       <li><h3>Review your parcels</h3><p>On your main, open a mailbox and select <strong>Route my bags</strong>. Check the recipients and click the gold <strong>Send</strong> button showing the parcel count.</p></li>
     </ol><a class="ink-link" href="https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use">Full install and upgrade guide →</a>
   </div></section>
+  <section class="paper tour" id="desk-tour" aria-labelledby="tour-heading"><div class="wrap">
+    <div class="section-title"><h2 id="tour-heading">Inside the mail desk</h2></div>
+    <p class="tour-intro">Explore the six pages before your first delivery. Each example comes from the addon’s Lua interface with sample characters and bags.</p>
+    <div class="tour-layout">
+        <nav class="tour-nav" aria-label="Mail desk pages">
+          <a id="tab-parcels" href="#tour-parcels"><strong>Mail desk</strong><span>Recipients and held stacks</span></a>
+          <a id="tab-addresses" href="#tour-addresses"><strong>Address book</strong><span>Characters and professions</span></a>
+          <a id="tab-rules" href="#tour-rules"><strong>Routing rules</strong><span>Item overrides and prices</span></a>
+          <a id="tab-gold" href="#tour-gold"><strong>Gold returns</strong><span>Balance, reserve and postage</span></a>
+          <a id="tab-activity" href="#tour-activity"><strong>Activity</strong><span>Receipts and delivery holds</span></a>
+          <a id="tab-appearance" href="#tour-appearance"><strong>Appearance</strong><span>Finish, size and spacing</span></a>
+        </nav>
+        <div class="tour-plates">
+          <figure id="tour-parcels" class="tour-plate">
+            <img src="assets/mail-desk-preview.png" alt="Two named parcels contain three stacks for mailing. The held list gives a separate reason for each item that stays." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Mail desk</strong> Review the names, quantities and held reasons before pressing Send. Selecting an item opens its routing rule. <a href="assets/mail-desk-preview.png">Open full-size mail desk image</a>.</figcaption>
+          </figure>
+          <figure id="tour-addresses" class="tour-plate">
+            <img src="assets/desk/address-book.png" alt="The directory shows Juniper Silver as Main, assigned profession alts and several unassigned roles." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Address book</strong> Select a profession to see its owner. Register the character you are playing, verify the displayed full name, then confirm the assignment. <a href="assets/desk/address-book.png">Open full-size address book image</a>.</figcaption>
+          </figure>
+          <figure id="tour-rules" class="tour-plate">
+            <img src="assets/desk/routing-rules.png" alt="An item ID in the rule inspector shows the saved rule, recipe uses and available destinations." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Routing rules</strong> Inspect an item ID or link, select a destination and apply the rule. Automatic removes an override. The auction floor is a minimum price per unit. <a href="assets/desk/routing-rules.png">Open full-size routing rules image</a>.</figcaption>
+          </figure>
+          <figure id="tour-gold" class="tour-plate">
+            <img src="assets/desk/gold-ledger.png" alt="The gold ledger shows the wallet, protected balance, empty-draft postage and the resulting gold-only return." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Gold returns</strong> Check what stays on this alt. Set a whole-gold reserve of at least 1g, choose an 8, 15 or 30 second countdown, and decide whether to include materials. <a href="assets/desk/gold-ledger.png">Open full-size gold returns image</a>.</figcaption>
+          </figure>
+          <figure id="tour-activity" class="tour-plate">
+            <img src="assets/desk/activity.png" alt="The Activity page separates a delivery requiring reconciliation from a previously accepted letter." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Activity</strong> A receipt means the server accepted a parcel. For an uncertain send, check the draft and receiving inbox before clearing the hold. <a href="assets/desk/activity.png">Open full-size activity image</a>.</figcaption>
+          </figure>
+          <figure id="tour-appearance" class="tour-plate">
+            <img src="assets/desk/appearance.png" alt="The Appearance page shows theme swatches, size choices and row-spacing controls." width="872" height="636" loading="lazy" decoding="async">
+            <figcaption><strong>Appearance</strong> Choose Parchment, Midnight or High contrast. Set the window to 85%, 100% or 115%, switch row spacing, or drag the header to float the desk. <a href="assets/desk/appearance.png">Open full-size appearance image</a>.</figcaption>
+          </figure>
+        </div>
+    </div>
+    <a class="ink-link" href="https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Visual-mail-desk">Open the illustrated handbook →</a>
+  </div></section>
   <section class="workshop" id="preview" aria-labelledby="demo-title"><div class="wrap spread">
     <div class="preview-intro"><p class="kicker">Gold returns</p><h2 id="demo-title">Choose how much gold stays home.</h2>
       <p>Each enrolled profession alt can return its surplus after a configurable 8, 15 or 30 seconds at the mailbox. Include materials to put the gold in the final parcel, after all postage.</p>
-      <p class="fine">Try a sample balance, postage and reserve. The addon reads both from the game. This calculator runs in your browser.</p></div>
+      <p class="fine">Try a sample balance, postage and reserve. The addon reads the wallet and postage from the game and uses the reserve you set. This calculator runs in your browser.</p></div>
     <form id="demo" class="letter"><div class="letter-head"><h3>Postage ledger</h3><span aria-hidden="true">✉</span></div>
       <label for="wallet">Alt balance <small>in gold</small></label><input id="wallet" type="number" min="0" max="99999999" step=".0001" value="3.4210" required>
       <label for="postage">Native postage <small>in copper</small></label><input id="postage" type="number" min="0" max="99999999" step="1" value="30" required>
