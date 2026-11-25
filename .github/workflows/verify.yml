@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Check the install ZIP against reviewed source
         run: python3 tools/verify_package.py
+      - name: Check player-facing links and versioned downloads
+        run: python3 tools/verify_docs.py
       - name: Install Lua 5.1 for the offline harness
         run: sudo apt-get update -qq && sudo apt-get install -y lua5.1
       - name: Exercise mailbox and settings behavior

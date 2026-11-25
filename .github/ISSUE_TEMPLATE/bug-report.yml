@@ -1,0 +1,84 @@
+name: Report a mailbox bug
+description: Report one issue with the Forever Goblin Mailer desk, mail flow or guides.
+title: "[Triage] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use one report per symptom. Check the [known reports](https://github.com/LML-Studio/ForeverGoblinMailer/issues) and [scoring rubric](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Testing-and-roadmap#how-we-score-reports). Maintainers review the estimates and put the assessed P1, P2 or P3 in the title and label.
+  - type: input
+    id: build
+    attributes:
+      label: Addon version and Forever client build
+      placeholder: "For example, v2.0.0-preview.2 on Forever 1.60.1.71091"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Where did you observe it?
+      options:
+        - In the running Forever client
+        - In the Lua fixture
+        - On the download page or in the documentation
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Setup and smallest reproduction
+      description: Include the role, relevant rules, item or wallet amounts, and the controls you used. Use aliases for names.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Expected and observed results
+      description: Give the exact status, if available. Distinguish the preview, Activity receipt and receiving inbox.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Player impact and workaround
+      description: How often does it happen and what lets you continue?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: A cropped and redacted screenshot, fixture case or source permalink can help. Exclude account folders and private logs.
+  - type: dropdown
+    id: value
+    attributes:
+      label: Proposed player value
+      options:
+        - "1/5 · cosmetic detail"
+        - "2/5 · occasional friction"
+        - "3/5 · repeated interruption"
+        - "4/5 · important routing decision or common blockage"
+        - "5/5 · core transfer or wallet correctness"
+    validations:
+      required: true
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated fix complexity
+      description: A rough estimate is enough for intake. Maintainers check it against the affected code.
+      options:
+        - "1/5 · single edit or observation"
+        - "2/5 · bounded change and regression check"
+        - "3/5 · several states or a provider integration"
+        - "4/5 · cross-module and native checks"
+        - "5/5 · broad redesign or platform uncertainty"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: How could someone confirm the fix?
+      placeholder: "Repeat the steps above and verify…"
+    validations:
+      required: true

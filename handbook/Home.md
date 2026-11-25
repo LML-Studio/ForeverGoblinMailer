@@ -1,15 +1,21 @@
-# Forever Goblin Mailer handbook
+# Player handbook
 
-**[Download the Forever install ZIP](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** · [Read the release notes](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.2)
+![Forever Goblin Mailer, a goblin sorting counter with a stamped parcel, trade goods and brass scales](../docs/assets/handbook-cover.jpg)
 
-Install the enclosed folder in `_forever_/Interface/AddOns/`, register your characters with `/fgm`, and open a mailbox on your main. **Address book**, **Routing rules**, **Gold returns**, **Activity** and **Appearance** remain available from the mail desk. The **Goblin Mailer** button reopens the panel if you close it. Open **Route my bags** to see where every stack will go.
+**[Download the install ZIP](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** · [Install and first use](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) · [Explore the six desk pages](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Visual-mail-desk)
 
-| Guide | What you will find |
+Put `ForeverGoblinMailer` in `_forever_/Interface/AddOns/` while WoW is closed. Register your main and alts with `/fgm`. At the mailbox on your main, choose **Route my bags**, read the recipients, and use the gold **Send** button when the manifest is right.
+
+| What do you want to do? | Open this guide |
 | --- | --- |
-| [Install and first use](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) | Upgrade from the subject fix and enroll your actual characters. |
-| [Preferences and troubleshooting](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Preferences-and-troubleshooting) | Profession and auction rules, gold returns, held stacks and delivery recovery. |
-| [How the addon works](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/How-the-addon-works) | Recipe data, address selection, native transfer flow and reserve calculation. |
-| [Release integrity](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-integrity) | Check the package hash, inspect the Lua, and use AI as a second reader. |
-| [Testing and roadmap](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Testing-and-roadmap) | Reproduce the offline suite and follow native acceptance. |
+| Install the right folder or upgrade from the old subject fix | [Install and first use](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Install-and-first-use) |
+| See what each button does before entering the game | [Visual mail desk](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Visual-mail-desk) |
+| Assign shared materials, change the auction floor or stop an automatic return | [Preferences and troubleshooting](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Preferences-and-troubleshooting) |
+| Follow a stack through the recipe index, recipient checks and mail queue | [How the addon works](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/How-the-addon-works) |
+| Check the ZIP or ask a reviewer to inspect the Lua | [Release integrity](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-integrity) |
+| See what passed on Preview 2 and what still needs an in-game run | [Preview 2 verification](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-2-checks) |
+| Report a defect or compare its priority, value and complexity | [Testing and roadmap](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Testing-and-roadmap) |
+
+**On your first profession-alt visit**, an eight-second gold return is enabled by default once a different main is registered. Open **Gold returns** via `/fgm` before visiting if you want to change it. The alt keeps at least one gold after postage.
 
 Developed by **Mini II - Forever - PvE**.

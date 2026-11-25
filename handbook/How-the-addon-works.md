@@ -12,6 +12,27 @@ The ingredient index joins `SkillLineAbility.Spell` to `SpellReagents.SpellID` f
 | SkillLineAbility | `ff55ddaf9769371cab81898ca019196ea4c694e1d5148d216674112d3d4ebafd` |
 | SpellReagents | `8c094f008ad07e72423713742add5e85a537b8baf9ef92c153e38d6d45588a06` |
 
+## Routing precedence
+
+```mermaid
+flowchart TD
+    S["One carried-bag stack"] --> T{"Transfer checks pass?"}
+    T -->|No| H["Hold and display reason"]
+    T -->|Yes| O{"Saved item rule?"}
+    O -->|Keep| H
+    O -->|Destination| D{"Other registered recipient?"}
+    O -->|Automatic| F{"Material family or recipe?"}
+    F -->|Resolved role| D
+    F -->|Ambiguous material| H
+    F -->|Eligible sale stock| Q{"Unit quote meets floor?"}
+    Q -->|Yes| D
+    Q -->|Missing or low| H
+    D -->|Yes| P["Group by character and split at attachment limit"]
+    D -->|No| H
+```
+
+This follows **Route my bags** on the main. **Materials to main** uses a separate return branch that honors Keep and auction reservations. [Routing source](https://github.com/LML-Studio/ForeverGoblinMailer/blob/v2.0.0-preview.2/ForeverGoblinMailer/Routing.lua#L42)
+
 ## From bag to recipient
 
 1. Read the backpack and equipped carried bags. Hold locked, bound, loot-containing, quest, refundable, equipment-set and unresolved stacks. Identify the physical slot, GUID, item variant and quantity.
@@ -21,6 +42,8 @@ The ingredient index joins `SkillLineAbility.Spell` to `SpellReagents.SpellID` f
 5. At dispatch, require a clean draft. Re-read each reviewed bag slot immediately before attaching, then check the exact native recipient, subject, body, money, COD and attachment variant/count before submission.
 6. Quote postage and check the balance again after populating the money field. Each client-accepted parcel reduces the run’s spending budget. A different quote, insufficient balance or mismatched stack stops the queue.
 
+## Delivery and recovery
+
 ```mermaid
 stateDiagram-v2
     [*] --> Review
@@ -28,7 +51,7 @@ stateDiagram-v2
     Attach --> Submit: Native readback matches
     Attach --> Stopped: Draft or item changed
     Submit --> Attach: Send success and parcels remain
-    Submit --> Delivered: Final send success
+    Submit --> Accepted: Final send success
     Submit --> Hold: Missing confirmation or failure
     Hold --> Review: Player reconciles delivery
 ```

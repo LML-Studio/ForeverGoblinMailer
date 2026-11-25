@@ -2,7 +2,7 @@
 
 ## Reproduce the release checks
 
-From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. GitHub Actions uses the same entry points. The 37 scenarios include every page, unavailable action tooltips, receipt reconciliation, preserved reserves, adjustable countdowns, and small-screen fitting. Offline snapshots run the real Lua frame tree with the build’s font and icons. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
+From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_package.py`. The project also runs `python tools/verify_docs.py` to catch missing image assets, stale ZIP links and broken tour anchors. The current workflow runs all three checks. The 37 scenarios include every page, unavailable action tooltips, receipt reconciliation, preserved reserves, adjustable countdowns, and small-screen fitting. Offline snapshots run the real Lua frame tree with the build’s font and icons. The fixture supplies synthetic character identities, wallet balances, bags, cursor contents, native compose controls and timed server responses. [CI runs](https://github.com/LML-Studio/ForeverGoblinMailer/actions/workflows/verify.yml) · [Test scenarios](https://github.com/LML-Studio/ForeverGoblinMailer/blob/main/tests/run.lua)
 
 | Covered offline | Native acceptance still needed |
 | --- | --- |
@@ -14,12 +14,37 @@ From the tagged checkout run `lua5.1 tests/run.lua` and `python tools/verify_pac
 
 ## Open work
 
-| Priority | Item | Value | Effort |
-| --- | --- | --- | --- |
-| P1 | [Verify end-to-end Forever delivery](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5) | 5/5 | 2/5 |
-| P2 | [Expose auction-quote freshness](https://github.com/LML-Studio/ForeverGoblinMailer/issues/6) | 4/5 | 3/5 |
-| P3 | [Offer a refresh when cold item data arrives](https://github.com/LML-Studio/ForeverGoblinMailer/issues/7) | 3/5 | 2/5 |
+| Priority | Report | Evidence | Player value | Fix complexity | Weighted |
+| --- | --- | --- | --- | --- | --- |
+| **P1** | [#5 · Deliver a real parcel and reconcile both wallets](https://github.com/LML-Studio/ForeverGoblinMailer/issues/5) | Native acceptance gate | 5/5 | 2/5 | **14/15** |
+| **P2** | [#6 · Show the age of cached auction prices](https://github.com/LML-Studio/ForeverGoblinMailer/issues/6) | Price adapter exposes no timestamp | 4/5 | 3/5 | **11/15** |
+| **P2** | [#7 · Offer a refresh when item details arrive](https://github.com/LML-Studio/ForeverGoblinMailer/issues/7) | Cold-data fixture | 3/5 | 2/5 | **10/15** |
+| **P3** | [#10 · Gold review offers an empty parcel at zero surplus](https://github.com/LML-Studio/ForeverGoblinMailer/issues/10) | Four wallet-boundary fixtures | 2/5 | 2/5 | **8/15** |
 
-Value measures player impact. Effort estimates implementation or verification cost, with 1 the smallest and 5 the largest. Native transfer validation takes priority because it gates the usable release. The historical subject-prefill reports remain discoverable on the v1 issue timeline. [All issues](https://github.com/LML-Studio/ForeverGoblinMailer/issues?q=is%3Aissue)
+[File a bug](https://github.com/LML-Studio/ForeverGoblinMailer/issues/new?template=bug-report.yml) · [All issues](https://github.com/LML-Studio/ForeverGoblinMailer/issues) · [Preview 2 verification](https://github.com/LML-Studio/ForeverGoblinMailer/wiki/Release-preview-2-checks)
+
+## How we score reports
+
+**Weighted score = 2 × player value + (6 − fix complexity).** Both inputs range from 1 to 5, following the [original bug reports](https://github.com/LML-Studio/ForeverGoblinMailer/issues/1). Titles and labels use **P1 for 14–15**, **P2 for 10–13**, and **P3 for 3–9**.
+
+| Score | Player value of resolving it | Complexity of the fix or verification |
+| --- | --- | --- |
+| 1 | Cosmetic detail with little effect on a task | One local edit or observation |
+| 2 | Occasional confusion with a reliable workaround | Bounded change with targeted regression checks |
+| 3 | Repeated interruption to a normal mailbox task | Multiple states or a provider integration |
+| 4 | Material routing decision or frequently blocked workflow | Cross-module work and substantial native validation |
+| 5 | Core transfer correctness, money or delivery evidence | Broad redesign or unresolved platform behavior |
+
+```mermaid
+flowchart LR
+    A["One symptom"] --> B["Reproduce and record build"]
+    B --> C["Score value and complexity"]
+    C --> D["Set title priority and label"]
+    D --> E["Verify acceptance cases"]
+```
+
+Include expected and actual behavior, reproduction steps, an evidence source, impact, any workaround, and a way to confirm resolution. Identify simulated and live evidence. Redact account data and character names before attaching screenshots.
+
+## Possible next feature
 
 A future convenience worth exploring is a **keep quantity per ingredient** for crafting on the current character. The existing Keep rule reserves every copy of a selected item ID. A partial-stack reserve would also need safe stack splitting and a preview of exactly what stays behind.
