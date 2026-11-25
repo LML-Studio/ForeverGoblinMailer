@@ -49,6 +49,10 @@ local function footerState()
     local label=canSend and ("Send "..#M.preview.parcels..(#M.preview.parcels==1 and " parcel" or " parcels")) or "Send reviewed parcels"
     local reason
     if not canSend then reason=r and "Wait for the current parcel." or (U.page~="desk" and "Return to Mail desk to review and send." or "Prepare and inspect a parcel first.") end
+    if U.page=="desk" and M.preview and M.preview.goldReason then
+        label=M.preview.goldAmount==0 and "No gold to send" or "Quote unavailable"
+        reason=M.preview.goldReason
+    end
     if U.page=="desk" then
         command(send,footer,U.width-right-184,9,166,34,label,
             "Submit the visible manifest to its named recipients. Wait for each server acknowledgement.",M.dispatch,reason,true)
@@ -105,7 +109,7 @@ end
 function M.refresh()
     if not window or not window:IsShown() or refreshing then return end
     refreshing=true
-    U.scope,U.prefs,U.guid,U.identityProblem=M.context()
+    U.scope,U.prefs,U.guid,U.identityProblem,U.network=M.context()
     U.prefs=U.prefs or {}
     U.style()
     U.paint(window.bg,"paper"); U.paint(rail.bg,"rail"); U.paint(footer.bg,"footer")
@@ -269,18 +273,25 @@ end
 
 local events=CreateFrame("Frame")
 for _,event in ipairs({"MAIL_SHOW","MAIL_CLOSED","MAIL_SEND_SUCCESS","MAIL_FAILED","MAIL_LOCK_SEND_ITEMS",
-    "PLAYER_REGEN_DISABLED","PLAYER_ENTERING_WORLD","DISPLAY_SIZE_CHANGED","UI_SCALE_CHANGED","PLAYER_MONEY"}) do events:RegisterEvent(event) end
-events:SetScript("OnEvent",function(_,event)
+    "PLAYER_REGEN_DISABLED","PLAYER_ENTERING_WORLD","DISPLAY_SIZE_CHANGED","UI_SCALE_CHANGED","PLAYER_MONEY","MAIL_SEND_INFO_UPDATE","MAIL_INBOX_UPDATE","UNIT_NAME_UPDATE","PLAYER_LOGIN"}) do events:RegisterEvent(event) end
+events:SetScript("OnEvent",function(_,event,unit)
     M.event(event)
+    if event=="PLAYER_MONEY" then M.check.walletChanged() end
+    if event=="MAIL_INBOX_UPDATE" or event=="MAIL_SHOW" then M.check.observeInbox() end
     if event=="MAIL_SHOW" then
         C_Timer.After(0,function() if M.open then U.style(); addLauncher(); show("desk") end end)
     elseif event=="MAIL_CLOSED" or event=="PLAYER_REGEN_DISABLED" then
         if window then window:Hide() end
     elseif window and window:IsShown() then
         if event=="DISPLAY_SIZE_CHANGED" or event=="UI_SCALE_CHANGED" then U.layout(true)
-        elseif event=="PLAYER_ENTERING_WORLD" or (event=="PLAYER_MONEY" and U.page=="returns") then M.refresh() end
+        elseif event=="PLAYER_ENTERING_WORLD" or (U.identityProblem and (event=="PLAYER_LOGIN" or (event=="UNIT_NAME_UPDATE" and unit=="player"))) or ((event=="PLAYER_MONEY" or event=="MAIL_SEND_INFO_UPDATE") and U.page=="returns") then M.refresh() end
     end
 end)
 SLASH_FOREVERGOBLINMAILER1="/fgm"
 SLASH_FOREVERGOBLINMAILER2="/goblinmail"
-SlashCmdList.FOREVERGOBLINMAILER=function() show("book") end
+SlashCmdList.FOREVERGOBLINMAILER=function(message)
+    if M.trim(message):lower()=="check" then
+        show("activity")
+        if not InCombatLockdown() then M.check.start() end
+    else show("book") end
+end

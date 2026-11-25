@@ -37,6 +37,26 @@ function B.compose()
     return true
 end
 
+local function copperValue(fn)
+    if type(fn) ~= "function" then return end
+    local ok, value = pcall(fn)
+    if ok and not secret(value) and type(value) == "number" and value >= 0
+        and value < math.huge and value == math.floor(value) then return value end
+end
+
+-- Read a gold-only estimate from an empty native draft. Nil is an unknown quote,
+-- while zero is a known balance that cannot send any gold.
+function B.goldQuote(reserve)
+    local wallet = copperValue(GetMoney)
+    local clean, reason
+    if M.open then clean, reason = B.compose() end
+    if not clean then return nil, reason or "Visit a mailbox for a postage quote.", wallet end
+    local postage = copperValue(GetSendMailPrice)
+    if not wallet or not postage then return nil, "Waiting for a wallet balance and postage quote.", wallet, postage end
+    local amount = M.payment(wallet, postage, true, true, reserve) or 0
+    return amount, amount == 0 and "No surplus after postage and your reserve." or nil, wallet, postage
+end
+
 local function itemKey(link)
     return type(link) == "string" and link:match("|H(item:[^|]+)|h") or nil
 end

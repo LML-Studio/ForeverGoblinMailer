@@ -249,4 +249,141 @@ test("a narrow screen fits the desk and repeated navigation reuses frame pools",
     for _,page in ipairs({"Address book","Routing rules","Gold returns","Activity","Appearance"}) do f.click(page) end
     eq(#f.widgets,size)
 end)
+local function goldDesk(balance, reserve)
+    local f=fixture()
+    f.guid, f.wallet, f.postage="char-tailor", balance, 30
+    local _,prefs=f.M.context(); prefs.auto=false; prefs.reserveGold=reserve or 1
+    openDesk(f)
+    f.click("Gold to main")
+    return f
+end
+
+test("zero and negative surplus disable the actual Send control before a click",function()
+    for _,case in ipairs({{10000,1},{10030,1},{20030,2}}) do
+        local f=goldDesk(case[1],case[2])
+        eq(#f.M.preview.parcels,0); eq(f.M.preview.goldAmount,0)
+        assert(f.button("No gold to send").block:find("No surplus",1,true))
+        f.click("No gold to send"); eq(#f.outbox,0); eq(f.wallet,case[1])
+    end
+end)
+test("one copper survives review, native submission, acknowledgement and wallet debit",function()
+    local f=goldDesk(10031)
+    eq(#f.M.preview.parcels,1); eq(f.M.preview.goldAmount,1)
+    f.click("Send 1 parcel"); eq(#f.outbox,1); eq(f.outbox[1].gold,1); eq(f.outbox[1].fee,30)
+    f.ack(); eq(f.wallet,10000); eq(f.M.receipts[1].gold,1)
+end)
+test("unknown postage stays distinct from a known zero and native updates refresh the offer",function()
+    local f=goldDesk(10031); f.env.GetSendMailPrice=function() end
+    f.listener.scripts.OnEvent(f.listener,"MAIL_SEND_INFO_UPDATE")
+    eq(f.M.preview.goldAmount,nil); assert(f.button("Quote unavailable").block); eq(#f.outbox,0)
+    f.env.GetSendMailPrice=function() return 30 end
+    f.wallet=10030; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,0)
+    f.wallet=10031; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,1)
+    f.click("Send 1 parcel"); eq(f.outbox[1].gold,1)
+end)
+test("a changed quote or balance before approval requires the displayed amount again",function()
+    local f=goldDesk(20031,2); f.wallet=20030; f.click("Send 1 parcel")
+    eq(#f.outbox,0); assert(f.button("No gold to send").block)
+    f.wallet=20035; f.listener.scripts.OnEvent(f.listener,"PLAYER_MONEY"); eq(f.M.preview.goldAmount,5)
+    f.postage=31; f.click("Send 1 parcel"); eq(#f.outbox,0); eq(f.M.preview.goldAmount,4)
+    f.click("Send 1 parcel"); eq(f.outbox[1].gold,4); f.ack(); eq(f.wallet,20000)
+end)
+test("zero gold permits a real material letter exactly at the postage boundary",function()
+    local f=fixture(); f.guid="char-tailor"; f.wallet=10030; f.item(1,2589)
+    openDesk(f); f.click("Materials to main")
+    eq(#f.M.preview.parcels,1); eq(f.M.preview.goldLetter,nil); f.click("Send 1 parcel"); f.advance(1)
+    eq(f.outbox[1].gold,0); eq(f.outbox[1].stacks,1); f.ack(); eq(f.wallet,10000)
+end)
+test("automatic gold and empty material sweeps share the one-copper boundary",function()
+    for _,mats in ipairs({false,true}) do
+        for _,balance in ipairs({10030,10031}) do
+            local f=alt(mats); f.wallet=balance; f.advance(9)
+            eq(#f.outbox,balance==10031 and 1 or 0)
+            if #f.outbox==1 then eq(f.outbox[1].gold,1); f.ack(); eq(f.wallet,10000) end
+        end
+    end
+end)
+test("Forever realm ID unlocks named roles on two characters with no realm name",function()
+    local f=fixture(); f.env.ForeverGoblinMailerDB=nil; f.env.GetRealmName=nil
+    f.env.GetRealmID=function() return 74 end
+    f.env.SlashCmdList.FOREVERGOBLINMAILER("")
+    eq(f.M.desk.network,"Realm ID 74 / Alliance"); assert(not f.button("Register this character").block)
+    f.click("Register this character"); f.click("Confirm assignment")
+    local scope=f.M.context(); eq(scope.roles.main.name,"Juniper Silver")
+    f.guid="char-tailor"; f.player="Thimble Blue"; eq(f.M.context(),scope)
+    f.env.SlashCmdList.FOREVERGOBLINMAILER(""); f.click("Tailoring"); f.click("Register this character"); f.click("Confirm assignment")
+    eq(scope.roles.tailor.name,"Thimble Blue")
+    f.env.GetRealmID=function() return 75 end; assert(f.M.context()~=scope)
+    f.env.GetRealmID=function() return 74 end; f.faction="Horde"; assert(f.M.context()~=scope)
+end)
+test("name-only address books retain roles, rules, holds and preferences when IDs appear",function()
+    local f=fixture(); local old,prefs=f.M.context()
+    old.roles.main.name="Existing Main"; old.rules[2592]="keep"; prefs.reserveGold=4; prefs.pending={gold=12}
+    f.env.GetNormalizedRealmName=function() return "Fixture" end
+    f.env.GetRealmName=function() return " " end; f.env.GetRealmID=function() return 74 end
+    local now,after=f.M.context(); eq(now,old); eq(after,prefs); eq(after.pending.gold,12)
+    f.env.GetNormalizedRealmName=nil; f.guid="other-alt"
+    eq(f.M.context(),old); eq(old.rules[2592],"keep"); eq(old.roles.main.name,"Existing Main")
+end)
+test("public GUID and native realm ID fallbacks never use player surnames or restricted results",function()
+    local f=fixture(); f.env.GetRealmName=nil; f.env.GetNormalizedRealmName=nil
+    f.env.GetRealmID=function() error("unavailable") end; f.env.GetNativeRealmID=function() return 80 end
+    local saved=f.M.context(); eq(saved.realmID,80)
+    f.env.GetNativeRealmID=function() return -1 end; f.guid="Player-80-00ABCD"
+    eq(f.M.context(),saved)
+    local hidden={}; f.env.issecretvalue=function(v) return v==hidden end
+    f.env.GetRealmID=function() return hidden end; f.env.GetRealmName=function() return hidden end
+    f.guid="invalid"; local scope,_,_,why=f.M.context(); eq(scope,nil); assert(why:find("realm ID",1,true))
+    f.env.GetNormalizedRealmName=function() return "NamedRealm" end; assert(f.M.context())
+end)
+test("an ID-only login recovers a uniquely owned legacy table and leaves ambiguous data intact",function()
+    local f=fixture(); f.guid="Player-79-A1"; local old=f.M.context()
+    f.guid="Player-79-B2"; f.env.GetRealmName=nil
+    eq(f.M.context(),old); eq(old.realmID,79)
+    old.realmID=nil
+    local realms=f.env.ForeverGoblinMailerDB.realms
+    local duplicate={characters={["Player-79-C3"]={}},roles={},rules={}}
+    realms["Other/Alliance"]=duplicate
+    local selected,_,_,why=f.M.context(); eq(selected,nil); assert(why:find("Multiple saved",1,true))
+    eq(realms["Fixture/Alliance"],old); eq(realms["Other/Alliance"],duplicate)
+end)
+test("later player identity updates recover an open desk without a reload",function()
+    local f=fixture(); f.env.ForeverGoblinMailerDB=nil; f.env.GetRealmName=nil
+    f.env.SlashCmdList.FOREVERGOBLINMAILER("")
+    assert(f.button("Register this character").block)
+    f.env.GetNativeRealmID=function() return 42 end
+    f.listener.scripts.OnEvent(f.listener,"UNIT_NAME_UPDATE","player")
+    eq(f.M.desk.network,"Realm ID 42 / Alliance"); assert(not f.button("Register this character").block)
+end)
+test("the opt-in evidence matches an acknowledged physical stack in a second character's inbox",function()
+    local f=fixture(); f.env.SlashCmdList.FOREVERGOBLINMAILER("check"); local check=f.scope.deliveryCheck
+    eq(#f.outbox,0); eq(#check.letters,0); f.item(1,2589,{stackCount=4}); openDesk(f)
+    f.click("Route my bags"); f.click("Send 1 parcel"); f.advance(1)
+    local letter=check.letters[1]; eq(letter.before,40000); eq(letter.gold,0); eq(letter.postage,30)
+    eq(letter.accepted,nil); assert(f.outbox[1].subject:find("[FGM ",1,true)); f.ack(); assert(letter.accepted)
+    eq(letter.afterAck,39970); eq(letter.inboxMatched,nil)
+    local receiver=fixture(); receiver.env.ForeverGoblinMailerDB=f.env.ForeverGoblinMailerDB
+    receiver.guid="char-tailor"; receiver.player="Thimble Blue"; receiver.env.GetInboxNumItems=function() return 2,2 end
+    receiver.env.GetInboxHeaderInfo=function(i) return nil,nil,"Juniper Silver",i==1 and "unrelated" or letter.subject,0,0,30,1,false,false end
+    local count=3; receiver.env.GetInboxItem=function(i,slot) assert(i==2); if slot==1 then return "Cloth",2589,0,count end end
+    openDesk(receiver); eq(letter.inboxMatched,nil)
+    count=4; receiver.listener.scripts.OnEvent(receiver.listener,"MAIL_INBOX_UPDATE"); assert(letter.inboxMatched)
+    eq(#receiver.outbox,0); eq(#receiver.M.receipts,0)
+end)
+test("the evidence recorder is opt-in, scoped, bounded and never accepts a returned or COD letter",function()
+    local f=goldDesk(10031); f.click("Send 1 parcel"); assert(not f.outbox[1].subject:find("FGM",1,true))
+    f.ack(); f.M.check.start(); local check=f.scope.deliveryCheck; f.wallet=10031
+    f.M.review("gold"); f.M.dispatch(); local l=check.letters[1]; f.ack()
+    eq(l.gold,1); eq(l.afterAck,10000); f.M.check.stop(); eq(f.M.check.active(check),false)
+    f.guid="char-main"; f.player="Juniper Silver"
+    f.env.GetInboxNumItems=function() return 1 end; f.env.GetInboxItem=function() end
+    local cod,returned=1,false
+    f.env.GetInboxHeaderInfo=function() return nil,nil,l.sender,l.subject,1,cod,30,nil,false,returned end
+    f.M.check.observeInbox(); eq(l.inboxMatched,nil)
+    cod,returned=0,true; f.M.check.observeInbox(); eq(l.inboxMatched,nil)
+    returned=false; f.M.check.observeInbox(); assert(l.inboxMatched)
+    f.M.check.start(); check=f.scope.deliveryCheck
+    for i=1,8 do check.letters[i]={} end
+    assert(not f.M.check.active(check)); f.M.check.start(); f.advance(7201); assert(not f.M.check.active(f.scope.deliveryCheck))
+end)
 print(("%d scenarios passed"):format(passed))

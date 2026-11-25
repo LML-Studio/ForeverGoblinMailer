@@ -34,8 +34,8 @@ function M.busy() return run ~= nil end
 
 local function contextFor(mode)
     if not M.open or not B.available() then return nil, "Open the mailbox outside combat." end
-    local scope, prefs, guid = M.context()
-    if not scope then return nil, "Character identity is unavailable." end
+    local scope, prefs, guid, problem = M.context()
+    if not scope then return nil, problem end
     if prefs.pending then return nil, "A previous send is unconfirmed. Check the recipient, then open Activity." end
     local main = M.member(scope, "main")
     if not main then return nil, "Register your main in the address book first." end
@@ -48,6 +48,12 @@ local function contextFor(mode)
     return {scope=scope, prefs=prefs, guid=guid, main=main, alt=alt}
 end
 
+local function quoteGoldLetter(plan)
+    local amount, reason = B.goldQuote(plan.reserve)
+    plan.goldAmount, plan.goldReason = amount, reason
+    plan.parcels[1] = amount and amount > 0 and plan.goldLetter or nil
+end
+
 local function build(mode, sweep)
     M.preview = nil
     local ctx, why = contextFor(mode)
@@ -58,11 +64,12 @@ local function build(mode, sweep)
     if mode == "gold" then plan = {parcels={}, held={}, stacks=0, mode=mode}
     else plan = M.plan(B.scan(), mode, ctx.scope, ctx.guid, B.limit(), B.price) end
     plan.sweep = ctx.alt and (mode == "gold" or sweep == true)
-    if #plan.parcels == 0 and plan.sweep then
-        plan.parcels[1] = {guid=ctx.main.guid, name=ctx.main.name, roles={main=true}, items={}}
-    end
-    plan.alt, plan.guid, plan.prefs = ctx.alt, ctx.guid, ctx.prefs
+    plan.alt, plan.guid, plan.prefs, plan.scope = ctx.alt, ctx.guid, ctx.prefs, ctx.scope
     plan.reserve = M.reserve(ctx.prefs)
+    if #plan.parcels == 0 and plan.sweep then
+        plan.goldLetter = {guid=ctx.main.guid, name=ctx.main.name, roles={main=true}, items={}}
+        quoteGoldLetter(plan)
+    end
     M.preview = plan
     return plan
 end
@@ -73,7 +80,7 @@ function M.review(mode, sweep)
     local ok, plan, reason = pcall(build, mode, sweep)
     if not ok then M.preview = nil; return say("The client could not read the mail or bag state. Retry the review.") end
     if not plan then return say(reason) end
-    say(("%d parcel(s), %d stack(s), %d held."):format(#plan.parcels, plan.stacks, #plan.held))
+    say(plan.goldReason or ("%d parcel(s), %d stack(s), %d held."):format(#plan.parcels, plan.stacks, #plan.held))
     return plan
 end
 
@@ -103,10 +110,12 @@ local function send(r)
     local wallet = math.min(r.budget, GetMoney())
     local copper = M.payment(wallet, postage, r.plan.alt, r.plan.sweep and r.index == #r.plan.parcels, r.plan.reserve)
     if not copper then return stop("The postage quote or available balance cannot cover this parcel and its reserve.") end
+    if r.plan.goldLetter and copper ~= r.plan.goldAmount then return stop("The gold amount changed. Review the new total before sending.") end
     if #r.parcel.items == 0 and copper == 0 then return stop("No surplus after postage and your reserve.") end
     r.cost, r.phase = postage + copper, "sending"
     r.plan.prefs.pending = {recipient=r.parcel.name, gold=copper, stacks=#r.parcel.items, postage=postage}
     say(("Awaiting confirmation for parcel %d/%d to %s."):format(r.index, #r.plan.parcels, r.parcel.name))
+    M.check.submitting(r, copper, postage)
     local ok, reason = B.submit(r.parcel, r.subject, copper, postage, r.plan.alt, r.plan.reserve)
     if not ok then r.plan.prefs.pending = nil; return stop(reason) end
     local sentIndex = r.index
@@ -142,6 +151,7 @@ local function beginParcel(r)
         if not amount or amount == 0 then return stop("No surplus after postage and your reserve.") end
     end
     r.subject = ("Goblin Mail / %s %d of %d"):format(r.plan.mode, r.index, #r.plan.parcels)
+    r.subject = M.check.prepare(r, r.subject)
     local ok, reason = B.begin(r.parcel, r.subject)
     if not ok then return stop(reason) end
     r.phase, r.attached, r.waitUntil = "attaching", 0, nil
@@ -150,7 +160,14 @@ end
 
 function M.dispatch()
     local plan = M.preview
-    if run or not plan or #plan.parcels == 0 then return end
+    if run or not plan then return end
+    if plan.goldLetter then
+        local previous = plan.goldAmount
+        quoteGoldLetter(plan)
+        if plan.goldReason then return say(plan.goldReason) end
+        if plan.goldAmount ~= previous then return say("The gold amount changed. Check the new total before sending.") end
+    end
+    if #plan.parcels == 0 then return end
     M.cancelAuto()
     run = {plan=plan, index=1, budget=GetMoney()}
     M.preview = nil
@@ -175,8 +192,12 @@ function M.event(event)
             local mode = prefs.withMats and "materials" or "gold"
             if M.review(mode, true) then M.dispatch() end
         end)
+    elseif (event == "PLAYER_MONEY" or event == "MAIL_SEND_INFO_UPDATE") and M.preview and M.preview.goldLetter and not run then
+        quoteGoldLetter(M.preview)
+        say(M.preview.goldReason or "Check the current gold amount before sending.")
     elseif event == "MAIL_SEND_SUCCESS" and run and run.phase == "sending" then
         local r = run
+        M.check.accepted(r)
         local receipt = r.plan.prefs.pending
         if type(receipt) == "table" then
             receipt.mode, receipt.items = r.plan.mode, r.parcel.items

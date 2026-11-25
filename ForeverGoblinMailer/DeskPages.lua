@@ -71,11 +71,14 @@ end
 
 local function manifest(plan)
     U.section("Parcel manifest",("%d parcel(s)  •  %d stack(s) for mailing  •  %d held in bags"):format(#plan.parcels,plan.stacks,#plan.held))
+    if plan.goldLetter then
+        U.text(plan.goldReason or ("Gold for "..plan.goldLetter.name.."  •  "..M.money(plan.goldAmount)),14,plan.goldReason and "warn" or "ink",8,true)
+    end
     for i,p in ipairs(plan.parcels) do
         local roles={}
         for _,r in ipairs(M.roles) do if p.roles[r[1]] then roles[#roles+1]=r[2] end end
         U.grid({{title=p.name,desc=("Parcel %d of %d   •   %s"):format(i,#plan.parcels,table.concat(roles,", ")),
-            icon=U.icons.parcel,selected=true,tag=(plan.sweep and i==#plan.parcels) and ("Includes surplus gold after postage and a "..M.money(plan.reserve).." reserve.") or nil}})
+            icon=U.icons.parcel,selected=true,tag=(plan.sweep and i==#plan.parcels) and ("Any surplus goes on this letter after postage and a "..M.money(plan.reserve).." reserve.") or nil}})
         local rows={}
         for _,it in ipairs(p.items) do rows[#rows+1]=itemTile(it,(it.routeBasis or "Route").."  /  "..(M.labels[it.routeRole] or "Main")) end
         U.grid(rows,2)
@@ -149,6 +152,7 @@ U.pages.book=function()
     local name=M.currentName()
     local key=role.."/"..(name or "").."/"..(who and who.guid or "")
     U.section(M.labels[role].." assignment",purpose[role])
+    U.text(U.network and ("Mail network  •  "..U.network) or U.identityProblem,12,"sub",6)
     U.grid({{title=address(role),desc="Current recipient  •  Your character is "..named(),icon=U.icons[role],selected=true}})
     local block=U.locked() or (not name and "The native full name is unavailable. Try again after login.")
     local enroll=option(U.confirm=="enroll/"..key and "Confirm assignment" or "Register this character",
@@ -266,19 +270,16 @@ local function saveReserve()
     U.prefs.reserveGold=n; U.state.reserveText=nil; U.change("This character will keep "..n.."g after postage.")
 end
 U.pages.returns=function()
-    local wallet=GetMoney and GetMoney()
     local reserve=M.reserve(U.prefs)
+    local amount,_,wallet,quote=M.box.goldQuote(reserve)
     local main=member("main")
     local active=main and main.guid~=U.guid and U.scope and M.isProfession(U.scope,U.guid)
     local usable=not U.locked()
     U.section("Gold ledger","Return destination: "..address("main")..". The sender keeps the reserve after paying actual native postage.")
-    local quote
-    if M.open and M.box.available() and M.box.compose() then quote=GetSendMailPrice() end
-    local amount=type(wallet)=="number" and M.payment(wallet,quote,true,true,reserve)
     U.grid({{title=wallet and M.money(wallet) or "Unavailable",desc="Current wallet",icon=U.icons.gold},
         {title=M.money(reserve),desc="Kept by this character",icon=U.icons.keep},
         {title=quote and M.money(quote) or "At the mailbox",desc="Empty-draft postage",icon=U.icons.desk},
-        {title=quote and M.money(amount or 0) or "Awaiting a quote",desc="Gold-only return at this quote",icon=U.icons.main}},2)
+        {title=amount and M.money(amount) or "Awaiting a quote",desc="Gold-only return at this quote",icon=U.icons.main}},2)
     U.section("On mailbox open",active and "This character is an enrolled profession alt." or "These choices activate on a profession alt with a different enrolled main.")
     local function toggle(key,value,msg)
         if not usable then return end
@@ -312,6 +313,20 @@ U.pages.activity=function()
     local block=U.locked() or (not pending and "There is no delivery hold to clear.")
     U.grid({option(U.confirm=="clear" and "Confirm checked delivery" or "Clear delivery hold","After checking the receipt or inbox, unlock a fresh review.",
         function() U.confirmAction("clear","Confirm only after checking delivery.",function() U.prefs.pending=nil; U.change("Delivery hold cleared.") end) end,nil,block)})
+    local check=U.scope and U.scope.deliveryCheck
+    local active=M.check.active(check)
+    U.section("Two-character delivery check","Optional local record. A marked subject lets the receiving character compare gold and stacks before collecting the letter.")
+    U.grid({option(active and "End delivery check" or "Start delivery check",
+        active and "Stop marking new letters. Recorded letters can still be matched." or "Mark up to eight outgoing parcels for two hours. Starting a check sends nothing.",
+        active and M.check.stop or M.check.start,U.icons.activity,U.locked())})
+    if type(check)=="table" and type(check.letters)=="table" then
+        local accepted,matched=0,0
+        for _,letter in ipairs(check.letters) do
+            if letter.accepted then accepted=accepted+1 end
+            if letter.inboxMatched then matched=matched+1 end
+        end
+        U.text(("Marked %d  •  Server accepted %d  •  Inbox matched %d"):format(#check.letters,accepted,matched),13,"ink",8)
+    end
     U.section("Accepted parcels","The last 20 server acknowledgements from this login. Each entry shows its destination, postage and contents.")
     if #M.receipts==0 then U.text("No parcels have been acknowledged during this login.",13,"sub") end
     for _,receipt in ipairs(M.receipts) do

@@ -13,6 +13,8 @@ return function()
     env.NUM_BAG_SLOTS, env.ATTACHMENTS_MAX_SEND=0, f.limit
     env.GetMoney=function() return f.wallet end
     env.GetTime=function() return f.now end
+    env.GetServerTime=function() return 1700000000+math.floor(f.now) end
+    env.GetBuildInfo=function() return "Fixture", "71139" end
     env.C_Timer={After=function(delta, fn) f.timers[#f.timers+1]={at=f.now+delta, fn=fn} end}
     function f.advance(delta)
         local untilTime=f.now+delta
@@ -81,7 +83,7 @@ return function()
         env.SendMailNameEditBox.text=""; env.SendMailSubjectEditBox.text=""
         M.event("MAIL_SEND_SUCCESS")
     end
-    for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","Dispatch","DeskKit","DeskPages","Panel"}) do
+    for _,file in ipairs({"Roster","Recipes","Routing","Mailbox","DeliveryCheck","Dispatch","DeskKit","DeskPages","Panel"}) do
         local chunk=assert(loadfile("ForeverGoblinMailer/"..file..".lua"))
         setfenv(chunk,env)("ForeverGoblinMailer",M)
     end

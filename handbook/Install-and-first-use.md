@@ -1,6 +1,6 @@
 # Install and first use
 
-**[Download ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.2/ForeverGoblinMailer.zip)** · [Checksum and release](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.2)
+**[Download ForeverGoblinMailer.zip](https://github.com/LML-Studio/ForeverGoblinMailer/releases/download/v2.0.0-preview.3/ForeverGoblinMailer.zip)** · [Checksum and release](https://github.com/LML-Studio/ForeverGoblinMailer/releases/tag/v2.0.0-preview.3)
 
 1. Close WoW before changing addon files. Extract the ZIP into the Forever client's `_forever_/Interface/AddOns/` directory. Check that `AddOns/ForeverGoblinMailer/ForeverGoblinMailer.toc` exists. A second nested folder prevents discovery.
 2. If upgrading from **Forever Mail Fix**, disable the old addon on the character screen or move its folder outside AddOns while the game is closed. The old subject preference belongs to v1. Version 2 starts with an empty address book.
@@ -17,7 +17,7 @@ _forever_/
         └── ForeverGoblinMailer/
             ├── ForeverGoblinMailer.toc
             ├── Roster.lua
-            ├── … six other Lua files …
+            ├── … seven other Lua files …
             ├── Panel.lua
             └── Mailroom.tga
 ```
@@ -26,7 +26,9 @@ In **Address book**, every profession shows its recipient or **Unassigned**. Che
 
 ![Address book showing the selected Main and the professions with their current recipients](../docs/assets/desk/address-book.png)
 
-*Offline example with sample characters.* Existing Preview 1 users keep their role assignments, item overrides and per-alt settings when they replace the addon folder with Preview 2. The v1 subject-prefill addon uses a different settings table.
+*Offline example with sample characters.* Players upgrading from Preview 1 or 2 keep their role assignments, item overrides and per-alt settings when they replace the addon folder with Preview 3. The v1 subject-prefill addon uses a different settings table.
+
+**Mail network** shows your realm name or numeric realm ID and faction. Two characters on the same network share role assignments. Missing names can resolve to a public ID. If the client identity is still loading, the open panel retries on player identity events.
 
 ## The first visit on a profession alt
 

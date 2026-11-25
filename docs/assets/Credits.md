@@ -12,6 +12,8 @@ Use case: stylized-concept. Asset type: wide horizontal editorial cover illustra
 
 The **Preview 2 handbook cover** uses a second original ImageGen illustration of the sorting counter, linen parcels, enchanting dust and brass postal scales. Its typesetting, the postage slip and the download page use the same pine, parchment and brass palette. The six desk illustrations are rendered from the actual addon frames with synthetic data. Client font and icon artwork shown within the interface belongs to its respective owners. These rendered examples contain no player screenshots or account records.
 
+The Preview 3 address book, gold ledger, Activity page and paired zero/one-copper reviews were rendered from the Preview 3 Lua frame tree. They use the same client artwork as the earlier handbook and contain synthetic wallets, names and mail.
+
 Baskervville is used for the landing page and printed documentation graphics. Copyright 2018 The Baskervville Project Authors. The unmodified variable font is distributed with its [SIL Open Font License](fonts/OFL.txt). [Upstream revision](https://github.com/google/fonts/tree/06bfe0d62a98375cb09c942fa18e68bd32cff057/ofl/baskervville)
 
 **Addon developer — Mini II - Forever - PvE.**
